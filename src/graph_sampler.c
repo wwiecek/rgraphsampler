@@ -87,6 +87,11 @@ void CleanupMemory (void)
   if (current_degrees)
     free (current_degrees);
 
+  if(component)
+    free(component);
+  if(component_size)
+    free(component_size);
+
   if (current_ll_node)
     free (current_ll_node);
 
@@ -112,6 +117,10 @@ void CleanupMemory (void)
     FreedMatrix(pData, nNodes);
     pData = NULL;
   }
+  if(pDataLevels) {
+    free(pDataLevels);
+    pDataLevels = NULL;
+  }
   if(mat_sum) {
     FreedMatrix(mat_sum, nNodes);
     mat_sum = NULL;
@@ -122,7 +131,18 @@ void CleanupMemory (void)
   nNodes = 0;
   n_at_targetT = 1;
   bInit = 0; //re-initialise RNG next time we run
+  bNAData = FALSE; //set NAData to its default value of FALSE
 
+  //set all Boolean flags to 0:
+  bDBN = 0; bBN = 0;
+  bZellner = 0; bDirichlet = 0; bConstantGamma = 0; bNormalGamma = 0;
+  bHypergraph = 0; bAutocycles = 0;
+  bPriorDegreeNode = 0; bPriorEdgeCount = 0; bPriorMotif = 0;
+  bPriorSCC = 0;
+  if(bAllowed_parents){
+    free(bAllowed_parents);
+    bAllowed_parents = NULL;
+  }
 } /* CleanupMemory */
 
 
@@ -216,7 +236,20 @@ void InitArrays (void)
      this is the "equanimous" prior */
   if (!hyper_pB) {
     hyper_pB = InitdMatrix(nNodes, nNodes);
+
+
+
+
+
+
+
+
+
+
+
+
     printf ("Setting hyper_pB to equanimous.\n\n");
+
 
     for (i = 0; i < nNodes; i++) {
       for (j = 0; j < nNodes; j++) {
@@ -360,47 +393,6 @@ void InitArrays (void)
     else // bDBN hopefully
       pdWorkMatrixSizeN = InitdMatrix (dim + 1, dim + 1);
 
-    /* replace missing data by initial imputed values (averages) */
-    if (bNAData) {
-
-      printf ("Missing data will be imputed.\n\n");
-
-      double average = 0;
-
-      // init a global list of the missing data coordinates
-      plistMissing = InitijList ();
-
-      // init missing data indicator array (a flag per node)
-      bHasMissing = InitiVector(nNodes);
-
-      for (i = 0; i < nNodes; i++) {
-         count = average = 0; // reset
-         for (j = 0; j < nData; j++) {
-           // find the average of node i data, skipping NAs
-           if (!isnan(pData[i][j])) {
-             average = average + pData[i][j];
-             count += 1;
-           }
-         }
-         if (count == 0) {
-           printf ("Warning: node %d has all data missing.\n", i+1);
-           average = 0; // arbitrary
-         }
-         else {
-           average = average / count;
-         }
-
-         // impute the average
-         for (j = 0; j < nData; j++) {
-           if (isnan(pData[i][j])) {
-             QueueijListItem (plistMissing, i, j); // store location in queue
-             bHasMissing[i] = TRUE;
-             pData[i][j] = average;
-           }
-         }
-      } // for i
-
-    } /* if bNAData */
 
     /* setup a blank component list to be used for single nodes */
     dag_component = InitiVector(nNodes);
@@ -431,9 +423,16 @@ void InitArrays (void)
    Impute a node's missing data by MCMC sampling, the importance ratio is
    computed on the node's Markov blanket.
 */
-void Impute (void)
+
+/* ----------------------------------------------------------------------------
+   Impute
+
+   Impute the missing data of all nodes by MCMC sampling,
+   the importance ratio is computed on the nodes' Markov blanket.
+*/
+void Impute ()
 {
-  register int child;
+  register int tmp_child, tmp_parent;
   double curr_llike, new_llike, diff_llike, sd = 0.5, data_diff;
   PLISTELEMIJ ple = plistMissing->Head;
   static BOOL bPrint;
@@ -441,125 +440,130 @@ void Impute (void)
   static unsigned long iPrint_interval;
   static double* pTmp;
 
-  if (!pTmp) { // initializations
+  if (!pTmp) { /* initialize */
+
     pTmp = InitdVector(nNodes);
     iPrint_interval = (nRuns > 1000 ? nRuns / 1000 : 1);
   }
 
-  // scan the missing data list, find start of parent's missing data
-  while (ple && (ple->iVal != parent))
-    ple = ple->next;
+  for (tmp_parent = 0; tmp_parent < nNodes; tmp_parent++)
+    if (bHasMissing[tmp_parent]) {
+      /* scan the missing data list, find start of parent's missing data */
+      while (ple && (ple->iVal != tmp_parent))
+        ple = ple->next;
 
-  if (ple == plistMissing->Head) { // start of the list
-    // check whether we should print
-    if (iter > iPrint_at) {
-      bPrint = 1;
-      iPrint_at += iPrint_interval;
-    }
-    else {
-      bPrint = 0;
-    }
-  }
+      if (ple == NULL)
+        lexerr ("Impute() called on a node without missing data");
 
-  do { // for each of the parent missing data
-
-    if (bPrint)
-      fprintf (pImputedFile, "%lu\t%d\t%d\t%g\t",
-               iter, parent, ple->jVal, pData[parent][ple->jVal]);
-
-    // sample a new value, remember the difference to undo eventually
-    data_diff = sd * (Randoms() - 0.5); // should be an adjustable kernel
-    pData[parent][ple->jVal] += data_diff;
-
-    // likelihood of the children in parent's Markov blanket
-    // for parent:
-    curr_llike = current_ll_node[parent];
-
-    if (bBN) {
-      if (bZellner)
-        pTmp[parent] = ZLoglikelihood_node (parent, pData);
-      else {
-        if (bDirichlet)
-          pTmp[parent] = DLoglikelihood_node (parent, pData);
+      if (ple == plistMissing->Head) { /* start of the list */
+        /* check whether we should print */
+        if (iter > iPrint_at) {
+          bPrint = 1;
+          iPrint_at += iPrint_interval;
+        }
         else
-          pTmp[parent] = GLoglikelihood_node (parent, pData);
+          bPrint = 0;
       }
-    }
 
-    if (bDBN) {
-      if (bZellner)
-        pTmp[parent] = ZLoglikelihood_node_DBN (parent, pData);
-      else {
-        if (bDirichlet)
-          pTmp[parent] = DLoglikelihood_node_DBN (parent, pData);
-        else
-          pTmp[parent] = NGLoglikelihood_node_DBN (parent, pData);
-      }
-    }
+      do { /* impute each of "tmp_parent" missing data */
 
-    new_llike = pTmp[parent];
+        if (bPrint)
+          fprintf (pImputedFile, "%lu\t%d\t%d\t",
+                   iter, tmp_parent, ple->jVal);
 
-    // for children:
-    for (child = 0; child < nNodes; child++) {
-      if (current_adj[parent][child]) {
+        /* sample a new value, remember the difference to undo eventually */
+        data_diff = sd * (Randoms() - 0.5); /* should be an adjustable kernel */
+        pData[tmp_parent][ple->jVal] += data_diff;
 
-        curr_llike += current_ll_node[child];
+        /* likelihood of the tmp_parent's Markov blanket */
+        /* for tmp_parent itself: */
+        curr_llike = current_ll_node[tmp_parent];
+
 
         if (bBN) {
           if (bZellner)
-            pTmp[child] = ZLoglikelihood_node (child, pData);
+            pTmp[tmp_parent] = ZLoglikelihood_node (tmp_parent, pData);
           else {
             if (bDirichlet)
-              pTmp[child] = DLoglikelihood_node (child, pData);
+              pTmp[tmp_parent] = DLoglikelihood_node (tmp_parent, pData);
             else
-              pTmp[child] = GLoglikelihood_node (child, pData);
+              pTmp[tmp_parent] = GLoglikelihood_node (tmp_parent, pData);
           }
         }
-        else { // bDBN, hopefully
+
+        if (bDBN) {
+
           if (bZellner)
-            pTmp[child] = ZLoglikelihood_node_DBN (child, pData);
+            pTmp[tmp_parent] = ZLoglikelihood_node_DBN (tmp_parent, pData);
           else {
             if (bDirichlet)
-              pTmp[child] = DLoglikelihood_node_DBN (child, pData);
+              pTmp[tmp_parent] = DLoglikelihood_node_DBN (tmp_parent, pData);
             else
-              pTmp[child] = NGLoglikelihood_node_DBN (child, pData);
+              pTmp[tmp_parent] = NGLoglikelihood_node_DBN (tmp_parent, pData);
           }
         }
 
-        new_llike += pTmp[child];
-      }
-    }
-    // printf ("current blanket ll: %g\n", curr_llike);
-    // printf ("new blanket ll: %g\n", new_llike);
+        new_llike = pTmp[tmp_parent];
 
-    /* accept of reject */
-    diff_llike = new_llike - curr_llike;
-    if ((diff_llike >= 0) || (log(Randoms()) < diff_llike)) { // accept
-      // printf ("accepted\n");
-      // update likelihoods
-      current_ll_node[parent] = pTmp[parent];
-      for (child = 0; child < nNodes; child++) {
-        if (current_adj[parent][child])
-          current_ll_node[child] = pTmp[child];
-      }
-      // keep the sampled data...
+        /* for its tmp_children: */
+        for (tmp_child = 0; tmp_child < nNodes; tmp_child++) {
+          if (current_adj[tmp_parent][tmp_child]) {
 
-      if (bPrint)
-        fprintf (pImputedFile, "%g\n", new_llike);
-    }
-    else { // reject the sampled data
-      // printf ("rejected\n");
-      pData[parent][ple->jVal] -= data_diff;
-      if (bPrint)
-        fprintf (pImputedFile, "%g\n", curr_llike);
-    }
+            curr_llike += current_ll_node[tmp_child];
 
-    ple = ple->next;
+            if (bBN) {
+              if (bZellner)
+                pTmp[tmp_child] = ZLoglikelihood_node (tmp_child, pData);
+              else {
+                if (bDirichlet)
+                  pTmp[tmp_child] = DLoglikelihood_node (tmp_child, pData);
+                else
+                  pTmp[tmp_child] = GLoglikelihood_node (tmp_child, pData);
+              }
+            }
+            else { /* bDBN, hopefully */
+              if (bZellner)
+                pTmp[tmp_child] = ZLoglikelihood_node_DBN (tmp_child, pData);
+              else {
+                if (bDirichlet)
+                  pTmp[tmp_child] = DLoglikelihood_node_DBN (tmp_child, pData);
+                else
+                  pTmp[tmp_child] = NGLoglikelihood_node_DBN (tmp_child, pData);
+              }
+            }
 
-  } while (ple && (ple->iVal == parent));
+            new_llike += pTmp[tmp_child];
+          }
+        }
+        /* printf ("current blanket ll: %g\n", curr_llike); */
+        /* printf ("new blanket ll: %g\n", new_llike); */
+
+        /* accept of reject */
+        diff_llike = new_llike - curr_llike;
+        if ((diff_llike >= 0) || (log(Randoms()) < diff_llike)) { /* accept */
+          /* update likelihoods */
+          current_ll_node[tmp_parent] = pTmp[tmp_parent];
+          for (tmp_child = 0; tmp_child < nNodes; tmp_child++) {
+            if (current_adj[tmp_parent][tmp_child])
+              current_ll_node[tmp_child] = pTmp[tmp_child];
+          }
+          /* keep the sampled data and print it */
+          if (bPrint)
+            fprintf (pImputedFile, "%g\t%g\n",
+                     pData[tmp_parent][ple->jVal], new_llike);
+        }
+        else { /* reject the sampled data */
+          pData[tmp_parent][ple->jVal] -= data_diff;
+          if (bPrint)
+            fprintf (pImputedFile, "%g\t%g\n",
+                     pData[tmp_parent][ple->jVal], curr_llike);
+        }
+        ple = ple->next;
+      } while (ple && (ple->iVal == tmp_parent));
+  } /* end for tmp_parent */
+
 
 } /* Impute */
-
 
 /* ----------------------------------------------------------------------------
    Logprior_diff
@@ -1178,9 +1182,35 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
   InitArrays();
 
+  if(hyper_pB){
+    printf("hyper_pB:");
+    PrintdMatrix(stdout, nNodes, hyper_pB);
+    printf("\n");
+  }
+  if(current_adj){
+    printf("current_adj:");
+    PrintiMatrix(stdout, nNodes, current_adj);
+    printf("\n");
+  }
+  if(edge_requirements) {
+    printf("edge_requirements:");
+    PrintiMatrix(stdout, nNodes, edge_requirements);
+    printf("\n");
+  }
+  if(pData) {
+    printf("pData (n x n):");
+    PrintdMatrix(stdout, nNodes, pData);
+    printf("\n");
+  }
+  printf("lambda %f \n", lambda_concord);
+  printf("nNodes %d \n", nNodes);
+
+
+
   /* compute the prior of the initial network,
   that initializes also book-keeping for fast computations of priors */
   current_logprior = Logprior_full (nNodes, current_adj);
+
 
   if (current_logprior <= -DBL_MAX)
     lexerr("initial network has prior with null probability");
@@ -1192,6 +1222,7 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   }
   else
     current_loglikelihood = 0;
+  printf("GO!\n");
 
   current_logposterior = current_logprior + current_loglikelihood;
 
@@ -1199,30 +1230,12 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   dBestLikelihood = current_loglikelihood;
   dBestPosterior  = current_logposterior;
 
-  if(hyper_pB){
-  printf("hyper_pB:");
-  PrintdMatrix(stdout, nNodes, hyper_pB);
-  printf("\n");
-  }
-  if(current_adj){
-  printf("current_adj:");
-  PrintiMatrix(stdout, nNodes, current_adj);
-  printf("\n");
-  }
-  if(edge_requirements) {
-  printf("edge_requirements:");
-  PrintiMatrix(stdout, nNodes, edge_requirements);
-  printf("\n");
-  }
-  if(pData) {
-  printf("pData (n x n):");
-  PrintdMatrix(stdout, nNodes, pData);
-  printf("\n");
-  }
-  printf("lambda %f \n", lambda_concord);
-  printf("nNodes %d \n", nNodes);
 
-  /*
+
+
+
+
+
   printf("nParents:");
   for (i = 0; i < nNodes; i++) printf("%d ", nParents[i]);
   printf("\n");
@@ -1235,15 +1248,17 @@ void gsmain (char **szFileIn, char **szPrefixOut)
     for (i = 0; i < nNodes; i++) printf("%d ", component_size[i]);
     printf ("\n");
   }
-  printf("Node integrated log-likelihoods:");
-  for (i = 0; i < nNodes; i++) printf("%f ", current_ll_node[i]);
-  printf ("\n");
+  if(current_ll_node){
+    printf("Node integrated log-likelihoods:");
+    for (i = 0; i < nNodes; i++) printf("%f ", current_ll_node[i]);
+    printf ("\n");
+    printf ("Current integrated likelihood (kept in GS): %f \n",
+            current_loglikelihood);
+    printf ("Current integrated likelihood (via full function): %f \n",
+            Loglikelihood_full(nNodes, pData, component, component_size));
+  }
 
-  printf ("Current integrated likelihood (kept in GS): %f \n",
-          current_loglikelihood);
-  printf ("Current integrated likelihood (via full function): %f \n",
-          Loglikelihood_full(nNodes, pData, component, component_size));
-  */
+
   /* -------------------
    The sampler is here
    */
@@ -1287,10 +1302,10 @@ void gsmain (char **szFileIn, char **szPrefixOut)
       }
     }
 
-    /* if child == 0 and parent has missing data impute the parent's data */
-    if ((bNAData) && (child == (!parent?1:0)) && (bHasMissing[parent]))
-      Impute ();
-
+        /* and impute all missing data */
+        if (bNAData){
+          Impute();
+}
     flag_update_loops = 0;
 
     /* skip the diagonal if no autocycle (as in a pure BN or hypergraph) */
@@ -1307,6 +1322,9 @@ void gsmain (char **szFileIn, char **szPrefixOut)
         (note: this is reached if bAutocycles is false) */
         if (bTempered && (iter > 0))
           SampleTemperature ();
+		/* and impute all missing data */
+        if (bNAData){
+          Impute();}
       }
     }
 
