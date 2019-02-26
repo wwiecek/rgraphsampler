@@ -1,0 +1,31 @@
+# test input file for graph_sampler
+# simple random graph generation with three nodes, first 10 iterations
+# the Bernoulli equanimous prior is scaled by 0.75
+# =========================================================================
+
+n_runs    = 10;
+n_burn_in = 0;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+n_nodes = 3;
+
+autocycle = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = 0.75 * matrix {equanimous};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.
+
+
+

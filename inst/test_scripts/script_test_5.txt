@@ -1,0 +1,32 @@
+# test input file for graph_sampler
+# simple random graph generation with 3 nodes, with a concordance prior
+# =========================================================================
+
+n_runs    = 2E6;
+n_burn_in = 1E6;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+n_nodes = 3;
+
+autocycle = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {equanimous};
+
+concordance_prior = true;
+edge_requirements = matrix {-1, -1,  0,
+                             1, -1, -1,
+                             1, -1, -1};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.

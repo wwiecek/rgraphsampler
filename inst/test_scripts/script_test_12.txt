@@ -1,0 +1,27 @@
+# test input file for graph_sampler
+# directed acyclic graph generation with 4 node, basic edge prior
+# =========================================================================
+
+n_runs    = 10000;
+n_burn_in = 1000;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+n_nodes = 4;
+
+bayesian_network = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {equanimous};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.

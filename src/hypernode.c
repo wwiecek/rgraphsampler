@@ -79,8 +79,8 @@ double LnSCCPrior (int *component, int *component_size)
     if (component[i] > n_all_components)
       n_all_components++;
 
-  /* count only the components of size one and at the same time cumulate
-     the log of their sizes under a power law */
+  /* count only the components of size superior to one and at the same time 
+     cumulate the log of their sizes under a power law */
   n_real_components = 0;
   cumLS = 0;
   for (i = 0; i < n_all_components; i++) { 
@@ -330,16 +330,18 @@ int UpdateLoops(int **adj, int parent, int child, int diff,
   int    max_component_visited = -1;
   double tmp_loglik;
   int    i, j;
-
-  /* make sure difference is 0 */
-  *diff_loglikelihood = 0;
-
   /* compute SCC (we know that diff is != 0) */
-  
   adj[parent][child] = !adj[parent][child];
   /* if diff == -1 we could restrict to a tiny subgraph - see below */
   Tarjan_with_sizes(adj, nNodes, proposed_component, proposed_component_size);
   adj[parent][child] = !adj[parent][child];
+
+  /* if there is not data: stop here */
+  if (!pData)
+    return(1);
+
+  /* make sure difference is 0 */
+  *diff_loglikelihood = 0;
 
   /* 1. Addition */
   if (diff == 1) {
@@ -412,11 +414,11 @@ int UpdateLoops(int **adj, int parent, int child, int diff,
 
   /* 2. Deletion */
   if (diff == -1) {
-    // this case is similar to diff == 1 but we can a priori
-    // forget about vertices not in component[child] - they're not affected
-    // we know that component_size[child] > 1, that's the starting condition
+    /* this case is similar to diff == 1 but we can a priori
+       forget about vertices not in component[child] - they're not affected
+       we know that component_size[child] > 1, that's the starting condition */
 
-    // pragmatic test first: loop HAS TO GET SMALLER to change!
+    /* pragmatic test first: loop HAS TO GET SMALLER to change! */
 
     /* 2.1. Loop shrinks */
     if (proposed_component_size[child] < component_size[child]) {
@@ -463,7 +465,7 @@ int UpdateLoops(int **adj, int parent, int child, int diff,
         }
       }
       /* subtract likelihood of the (possibly) destroyed supernode */
-      if(*diff_loglikelihood != 0)
+      if (*diff_loglikelihood != 0)
         *diff_loglikelihood = *diff_loglikelihood - current_ll_node[child];
     }
 

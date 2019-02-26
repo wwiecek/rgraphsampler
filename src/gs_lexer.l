@@ -179,9 +179,6 @@ false|False|FALSE            { yylval.ival = 0; return INTEGER; }
 
 <<EOF>>   { // put dummy stuff here (to avoid stupid compiler warnings)
             input(); yyunput(0, "a");
-            // yy_flush_buffer();
-            // printf("Terminating the parser.\n");
-            // yyterminate();
             // instruct to get out
             return end_id; }
 

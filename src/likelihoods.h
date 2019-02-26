@@ -94,6 +94,16 @@ extern BOOL   bNAData;             // flag for missing data in data matrix
 
 extern int    *dag_component;      // blueprint for SCC of DAG
 
+// matrices for calculations, pre-allocated in graph_sampler.c:
+extern double **pdM1;
+extern double **pdM2;
+extern double **pdM3;
+extern double **pdM4;
+extern double **pdM5;
+extern double **pdM6;
+extern double **pdM7;
+extern double **tpd5;
+
 /* End */
 
 #define LIKELIHOODS_H_DEFINED

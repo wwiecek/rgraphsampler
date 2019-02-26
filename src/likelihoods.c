@@ -72,7 +72,7 @@ void Update_parenthood (int parent, int child, int diff)
   else {
     /* add parent at the end of index_parents array */
     index_parents[child][nParents[child]] = parent;
-    nParents[child] += 1; /* potential problem if constraints on parenthood 
+    nParents[child] += 1; /* potential problem if constraints on parenthood
                              size are not checked */
   }
 
@@ -191,7 +191,7 @@ double Loglikelihood_full (int N, double **pData, int *component,
         if (component_size[i] > 1) { // we are dealing with an hypernode
           if (max_component_visited < component[i]) {
             if (!CGLoglikelihood_hypernode (i, pData, component, &tmp_loop_ll))
-              lexerr("hypernode too large in Loglikelihood_full\n");	      
+              lexerr("hypernode too large in Loglikelihood_full\n");
             cumLL += tmp_loop_ll;
             max_component_visited = component[i];
 
@@ -257,22 +257,13 @@ double GLoglikelihood_node (int node, double **pData)
 
   if (bHypergraph || bConstantGamma) {
     if (!CGLoglikelihood_hypernode(node, pData, dag_component, &ILL))
-      lexerr("hypernode too large in GLoglikelihood_node\n");   
+      lexerr("hypernode too large in GLoglikelihood_node\n");
     return(ILL);
   }
   /* That's it */
 
   int j, k;
-  static double **pdM1 = NULL;
-  static double **pdM2 = NULL;
-
   double df;
-
-  if (!pdM1) { // stupidly large arrays
-    int dim = (nNodes > nData ? nNodes : nData);
-    pdM1 = InitdMatrix(dim, dim);
-    pdM2 = InitdMatrix(dim, dim);
-  }
 
   // the vector mu of prior data expectations is null, so forget it
 
@@ -365,15 +356,29 @@ double GLoglikelihood_node (int node, double **pData)
    CGLoglikelihood_hypernode
 
    Computes the (integrated) log-likelihood of the data for one hypernode,
-   the values of its parents (taken as regressors X), given a constant-gamma 
+   the values of its parents (taken as regressors X), given a constant-gamma
    model.
    Inputs:
    . node: node number
    . pData: data array
    . component: strongly connected component object
-   Output: 
+
+   Calculation helpers - who is who:
+   pdM1 is matrix Y of data for nodes in loop
+   pdM2 is design matrix X
+
+   pdM3 is matrix = t(X)*X
+   pdM4 is matrix = inverse of t(X)*X
+   pdM5 is matrix = (t(X)*X)^-1 * t(X)
+   pdM6 is matrix = MLE of theta parameters
+   pdM7 is matrix = Y - X*(theta MLE)
+
+   tpd5 is matrix A0 = t(pdM7)*pdM7 =
+                       t(Y - X*(theta MLE))*(Y - X*(theta MLE))
+
+   Output:
    . dILL: pointer to the computed integrated loglikelihood
-   . function value: 1 if success, 0 if data number constraint is not fulfilled 
+   . function value: 1 if success, 0 if data number constraint is not fulfilled
 */
 int CGLoglikelihood_hypernode (int node, double **pData, int *component,
                                double *dILL)
@@ -382,35 +387,10 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
   double sum;
 
   static int *arrayparents;
-
-  static double **pdM1 = NULL;   // matrix Y of data for nodes in loop
-  static double **pdM2 = NULL;   // design matrix X
-  static double **tX   = NULL;   // transpose of the design matrix
-  static double **pdM3 = NULL;   // matrix = t(X)*X
-  static double **pdM4 = NULL;   // matrix = inverse of t(X)*X
-  static double **pdM5 = NULL;   // matrix = (t(X)*X)^-1 * t(X)
-  static double **pdM6 = NULL;   // matrix = MLE of theta parameters
-  static double **pdM7 = NULL;   // matrix = Y - X*(theta MLE)
-  static double **tpd4 = NULL;   // transpose of pdM7
-  static double **tpd5 = NULL;   // matrix A0 = tpd4*pdM7 =
-                                 // t(Y - X*(theta MLE))*(Y - X*(theta MLE))
-
   int dim = (nNodes > nData ? nNodes : nData);
-
-  if (!pdM1) { // stupidly large arrays
-    pdM1 = InitdMatrix(dim, dim);
-    pdM2 = InitdMatrix(dim, dim);
-    pdM3 = InitdMatrix(dim, dim);
-    pdM4 = InitdMatrix(dim, dim);
-    pdM5 = InitdMatrix(dim, dim);
-    pdM6 = InitdMatrix(dim, dim);
-    pdM7 = InitdMatrix(dim, dim);
-    tX   = InitdMatrix(dim, dim);
-    tpd4 = InitdMatrix(dim, dim);
-    tpd5 = InitdMatrix(dim, dim);
+  if (!arrayparents){
     arrayparents = InitiVector(nNodes);
   }
-
   /* search the component array for nodes that are in the same (target) scc
      as the current (child) node */
   num_node = 0;    /* number of nodes in the target scc */
@@ -471,46 +451,21 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     printf("%d ", arrayparents[k]);
   }
   printf("\n\n"); */
-  
+
   // design matrix construction
   for (i = 0; i < nData; i++)
     pdM2[i][0] = 1;
 
-  /* runner = parent_list; */
-  /* j = 1; */
-  /* while (runner != NULL) { */
-  /*   // printf("runner iVal (parent number): %d\n", runner->iVal); */
-  /*   for (i = 0; i < nData; i++) */
-  /*     pdM2[i][j] = pData[runner->iVal][i]; */
-
-  /*   runner = runner->next; */
-  /*   j++; */
-  /* } */
-  
   for (k = 0; k < num_parents; k++)
     for (i = 0; i < nData; i++)
       pdM2[i][num_parents-k] = pData[arrayparents[k]][i];
-
-  /* for (k = 0; k <= num_parents; k++) { */
-  /*   for (i = 0; i < nData; i++) */
-  /*     if (pdM2b[i][k] != pdM2[i][k]) { */
-  /* 	PrintdMatrix(stdout, dim, pdM2); */
-  /* 	PrintdMatrix(stdout, dim, pdM2b); */
-  /* 	lexerr("bad try"); */
-  /*     } */
-  /* } */
-
-  /* transpose the design matrix */
-  for (i = 0; i < nData; i++)
-    for (j = 0; j <= num_parents; j++)
-      tX[j][i] = pdM2[i][j];
 
   /* calculate t(X) * X, that is: tX * pdM2 */
   for (i = 0; i <= num_parents; i++) {
     for (j = 0; j <= num_parents; j++) {
       sum = 0;
       for (k = 0; k < nData; k++)
-        sum = sum + (tX[i][k] * pdM2[k][j]);
+        sum = sum + (pdM2[k][i] * pdM2[k][j]); //pdM2[k][i] because it's transpose of pdM2
       pdM3[i][j] = sum;
       pdM4[i][j] = sum;
     }
@@ -523,11 +478,12 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     InvertMatrix_Chol(pdM4, 1+num_parents);
   }
 
+
   for (i = 0; i <= num_parents; i++) {
     for (j = 0; j < nData; j++) {
       sum = 0;
       for (k = 0; k <= num_parents; k++)
-        sum = sum + (pdM4[i][k] * tX[k][j]);
+        sum = sum + (pdM4[i][k] * pdM2[j][k]); //pdM2[j][k] because it's transpose of pdM2
       pdM5[i][j] = sum;
     }
   }
@@ -552,25 +508,16 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     }
   }
 
-  /* transpose */
-  for (i = 0; i < nData; i++)
-    for (j = 0; j < num_node; j++)
-      tpd4[j][i] = pdM7[i][j];
-
   /* sample variance covariance matrix */
   for (i = 0; i < num_node; i++) {
     for (j = 0; j < num_node; j++) {
       sum = 0;
       for (k = 0; k < nData; k++)
-        sum = sum + tpd4[i][k] * pdM7[k][j];
+        sum = sum + pdM7[k][i] * pdM7[k][j]; //pdM7[k][i] is transpose of pdM7
       tpd5[i][j] = sum;
-    }
-  }
 
-  /* add Wishart shape kappa (identity matrix) to sample vcov matrix */
-  for (i = 0; i < num_node; i++) {
-    for (j = 0; j < num_node; j++) {
-      if (i == j) 
+	  /* add Wishart shape kappa (identity matrix) to sample vcov matrix */
+      if (i == j)
         tpd5[i][j] = tpd5[i][j] + scale_wishart_diag;
       else
         tpd5[i][j] = tpd5[i][j] + scale_wishart_offdiag;
@@ -580,17 +527,8 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
   /* degrees of freedom */
   df_wishart = num_node + extra_df_wishart;
 
-  *dILL = LnRatio (pdM3, tpd5, nData, num_node, num_parents+1, df_wishart, 
+  *dILL = LnRatio (pdM3, tpd5, nData, num_node, num_parents+1, df_wishart,
                    scale_wishart_diag, scale_wishart_offdiag, nNodes);
-
-  /* diagnostics: */
-  /* printf ("Summary.\n Matrices (t(X)X and VC) used in calculations:\n"); */
-  /* PrintdMatrix (stdout, num_parents+1, pdM3); */
-  /* PrintdMatrix (stdout, num_node, tpd5); */
-  /* printf ("nData: %d \n", nData); */
-  /* printf ("num_node: %d \n", num_node); */
-  /* printf ("num_parents: %d \n", num_parents); */
-  /* printf ("LnRatio: %f \n\n", *dILL); */
 
   return(1);
 
@@ -622,20 +560,11 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
 double NGLoglikelihood_node_DBN (int node, double **pData)
 {
   int i, j, k;
-  static double **pdM1 = NULL;
-  static double **pdM2 = NULL;
-  static int nDataM1;
+  // For DBNs there are in fact n-1 data, compute it once
+  int nDataM1 = nData - 1;
 
   double df, LL;
 
-  if (!pdM1) { // stupidly large arrays
-    int dim = (nNodes + 1 > nData ? nNodes + 1 : nData);
-    pdM1 = InitdMatrix(dim, dim);
-    pdM2 = InitdMatrix(dim, dim);
-
-    // For DBNs there are in fact n-1 data, compute it once
-    nDataM1 = nData - 1;
-  }
 
   // the vector mu of prior data expectations is null, so forget it
 
@@ -747,9 +676,6 @@ double NGLoglikelihood_node_DBN (int node, double **pData)
 double NGPostPredictiveSample_node (int node, double **pData, double *pSamples)
 {
   int i, j, k;
-  static double **pdM1 = NULL;
-  static double **pdM2 = NULL;
-
   double df, LL;
 
 
@@ -793,11 +719,6 @@ dTm(yi, 1, mu, precision, df)
 ===========
 #endif
 
-  if (!pdM1) { // stupidly large arrays
-    int dim = (nNodes > nData ? nNodes : nData);
-    pdM1 = InitdMatrix(dim, dim);
-    pdM2 = InitdMatrix(dim, dim);
-  }
 
   /* the vector mu (aka theta_zero) of prior data expectations is null,
      so forget it
@@ -1123,7 +1044,7 @@ double DLoglikelihood_node_DBN (int node, double **pData)
   static double *pdCodesPE         = NULL;
   static double *pdCumConfigNumber = NULL;
   static double *pdIndexConfig     = NULL;
-  static int     nDataM1;
+  int     nDataM1;
 
   if (!pdCodesPE) {
     pdCodesP          = InitdVector(nData);
@@ -1277,17 +1198,13 @@ double DLoglikelihood_node_DBN (int node, double **pData)
 double ZLoglikelihood_node (int node, double **pData)
 {
   int i, j, k;
-  static double **pdM1 = NULL;
   static double *pdV1  = NULL;
   static double *pdV2  = NULL;
   double mx;
   double LL;
 
-  if (!pdM1) { /* stupidly large arrays */
-    int dim = (nNodes > nData ? nNodes : nData); /* the largest */
-    pdM1 = InitdMatrix(dim, dim);
-
-    dim = (nNodes > nData ? nData : nNodes); /* the smallest */
+  if (!pdV1) {
+    int dim = (nNodes > nData ? nData : nNodes); /* the smallest */
     pdV1 = InitdVector(dim);
     pdV2 = InitdVector(dim);
   }
@@ -1408,17 +1325,13 @@ double ZLoglikelihood_node (int node, double **pData)
 double ZLoglikelihood_node_DBN (int node, double **pData)
 {
   int i, j, k;
-  static double **pdM1 = NULL;
   static double *pdV1  = NULL;
   static double *pdV2  = NULL;
-  static int nDataM1;
+  int nDataM1;
   double mx, LL;
 
-  if (!pdM1) { // stupidly large arrays
-    int dim = (nNodes + 1 > nData ? nNodes + 1 : nData); // the largest
-    pdM1 = InitdMatrix(dim, dim);
-
-    dim = (nNodes + 1 > nData ? nData : nNodes + 1); // the smallest
+  if (!pdV1) {
+    int dim = (nNodes + 1 > nData ? nData : nNodes + 1); // the smallest
     pdV1 = InitdVector(dim);
     pdV2 = InitdVector(dim);
 

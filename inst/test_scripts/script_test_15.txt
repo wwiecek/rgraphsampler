@@ -1,0 +1,34 @@
+# test input file for graph_sampler
+# directed acyclic graph generation with 4 node, with a tuned degree prior
+# and expressions here and there.
+# =========================================================================
+
+n_runs    = 100 * 100; # expression
+n_burn_in = 100 + 900; # expression
+
+random_generator = mersenne_twister;
+
+random_seed = 10 * (4973 + 1); # expression
+
+n_nodes = 4;
+
+bayesian_network = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {0,   0.1, 0.2, (0.01 * 10), # expression for matrix element
+                   0.9, 0,   0.1, 0.1,
+                   0.1, 0.1, 0,   0.1,
+                   0.9, 0.1, 0.1, 0};
+
+degree_prior = true;
+gamma_degree = 5.0;
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.

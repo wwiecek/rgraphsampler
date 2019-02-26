@@ -18,11 +18,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #ifndef NO_LIBGSL
-// #include <gsl/gsl_matrix.h>
-// #include <gsl/gsl_linalg.h>
-// #include <gsl/gsl_cblas.h>
-// #endif
+#ifndef NO_LIBGSL
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_cblas.h>
+#endif
 
 #include "lexerr.h"
 #include "matrices.h"
@@ -413,6 +413,139 @@ void PrintSortediMatrix (FILE *pFile, int dim, int **piMat, int *pindex)
 
 
 /* ----------------------------------------------------------------------------
+   Cholesky
+
+   Performs a Cholesky decomposition of an Hermitian matrix M:
+   Compute the matrix L such that M = LL*.
+
+   Returns 0 if successful, -1 otherwise.
+   Matrix M lower triangle is destroyed in the process.
+*/
+int Cholesky (double **M, double **prgdComponent, int dim)
+{
+  register int i, j, k;
+  double dSum;
+
+  for (i = 0; i < dim; i++)
+    for (j = 0; j < dim; j++)
+      prgdComponent[i][j] = 0.0;
+
+  for (i = 0; i < dim; i++) {
+    for (j = i; j < dim ; j++) {
+      dSum = M[i][j];
+      for (k = i - 1; k >= 0 ; k--)
+        dSum = dSum - M[i][k] * M[j][k];
+
+      if (i == j) {
+        if (dSum <= 0.0) {
+          printf ("Error: input matrix for Cholesky is not "
+                  "positive definite - Exiting.\n\n");
+          /* printf ("\ndSum = %g\n", dSum); */
+          exit(0);
+        }
+        else
+          prgdComponent[i][i] = sqrt(dSum);
+      }
+      else
+        M[j][i] = dSum / prgdComponent[i][i];
+    } /* end for j */
+  }
+
+  for (i = 0; i < dim ; i++)
+    for (j = i+1; j < dim ; j++)
+      prgdComponent[j][i] = M[j][i];
+
+  /* success */
+  return(1);
+
+} /* Cholesky */
+
+
+/* ----------------------------------------------------------------------------
+   Log-determinant using Cholesky decomposition
+
+   The determinant is the sum of the squares of the diagonal elements of
+   the decomposition L matrix
+*/
+double LnDeterminant_Chol (double **M, int dim)
+{
+  register int i;
+  double det = 0;
+  static int local_dim = 0;
+  static double ** L = NULL; /* freeing it is costly; make it global? */
+
+  if (dim > local_dim) {
+    if (L) {
+      for (i = 0; i < local_dim; i++)
+	free(L[i]);
+      free (L);
+    }
+    L = InitdMatrix (dim, dim);
+    local_dim = dim;
+  }
+
+  Cholesky (M, L, dim);
+
+  for (i = 0; i < dim; i++)
+    det += log(L[i][i]);
+
+  return (2 * det);
+
+} /* LnDeterminant_Chol */
+
+
+/* ----------------------------------------------------------------------------
+   InvertMatrix_Chol
+
+   Inverts matrix M using Cholesky decomposition.
+   Matrix M is replaced by its inverse.
+*/
+void InvertMatrix_Chol (double **M, int dim)
+{
+  register int i, j, k;
+  double dSum;
+
+  Cholesky (M, pdWorkMatrixSizeN, dim);
+
+  /* invert pdWorkMatrixSizeN */
+  for (i = 0; i < dim; i++) {
+    for (j = 0; j <= i; j++) {
+      dSum = (i == j ? 1.0 : 0.0);
+      for (k = i - 1; k >= j; k--)
+        dSum -= pdWorkMatrixSizeN[i][k] * M[j][k];
+      M[j][i] = dSum / pdWorkMatrixSizeN[i][i];
+    }
+  }
+
+  /* multiply by t(pdWorkMatrixSizeN) */
+  for (i = dim-1; i >= 0; i--) {
+    for (j = 0; j <= i; j++) {
+      dSum = (i < j ? 0.0 : M[j][i]);
+      for (k = i + 1; k < dim; k++)
+        dSum -= pdWorkMatrixSizeN[k][i] * M[j][k];
+      M[i][j] = M[j][i] = dSum / pdWorkMatrixSizeN[i][i];
+    }
+  }
+
+} /* InvertMatrix_Chol */
+
+
+/* ----------------------------------------------------------------------------
+   Linear algebra: We have two versions of LU decomposition and
+   associated routines for determinant or inversion, depending whether we use
+   gsl or not.
+
+   For Cholesky decomposition, the case is still out. It is slower by about
+   30% in gsl, but gsl could in some cases be more accurate, in particular if
+   preconditionning or pivoting is used (but then calculations would probably
+   be even slower). However, at the moment matrix inversion cannot easily use
+   the more accurate approaches (it works only for determinant calculations).
+   So, the Cholesky routines end with "_" and are not used.
+*/
+
+#ifdef NO_LIBGSL
+
+/* ----------------------------------------------------------------------------
    LU_decomposition
 
    Does the LU decomposition of a matrix M:
@@ -563,122 +696,146 @@ double LnDeterminant_LU (double **M, int dim)
 } /* LnDeterminant_LU */
 
 
+#else  // gsl version, preferred:
+
+
 /* ----------------------------------------------------------------------------
-   Cholesky
-
-   Performs a Cholesky decomposition of an Hermitian matrix M:
-   Compute the matrix L such that M = LL*.
-
-   Returns 0 if successful, -1 otherwise.
-   Matrix M lower triangle is destroyed in the process.
+   Determinant obtained by LU_decomposition, gsl version
 */
-int Cholesky (double **M, double **prgdComponent, int dim)
+double Determinant_LU (double **M, int dim)
 {
-  register int i, j, k;
-  double dSum;
+  return (exp(LnDeterminant_LU (M, dim)));
 
+} /* Determinant_LU */
+
+
+/* ----------------------------------------------------------------------------
+   Log-determinant obtained by LU_decomposition, gsl version
+*/
+double LnDeterminant_LU (double **M, int dim)
+{
+  int i, j, detsign;
+  double lndet;
+  gsl_matrix *m = gsl_matrix_alloc (dim, dim);
+  gsl_permutation *perm = gsl_permutation_alloc(dim);
+
+  /* copy M to m */
   for (i = 0; i < dim; i++)
     for (j = 0; j < dim; j++)
-      prgdComponent[i][j] = 0.0;
+      gsl_matrix_set (m, i, j, M[i][j]);
 
-  for (i = 0; i < dim; i++) {
-    for (j = i; j < dim ; j++) {
-      dSum = M[i][j];
-      for (k = i - 1; k >= 0 ; k--)
-        dSum = dSum - M[i][k] * M[j][k];
+  gsl_linalg_LU_decomp (m, perm, &detsign);
 
-      if (i == j) {
-        if (dSum <= 0.0) {
-          printf ("Error: input matrix for Cholesky is not "
-                  "positive definite\n");
-          printf ("\ndSum = %g\n", dSum);
-          exit(0);
-        }
-        else
-          prgdComponent[i][i] = sqrt(dSum);
-      }
-      else
-        M[j][i] = dSum / prgdComponent[i][i];
-    } /* end for j */
+  if (gsl_linalg_LU_sgndet (m, detsign) <= 0) {
+    printf ("Error: non positive-definite matrix in LnDeterminant - "
+            "Exiting.\n\n");
+    exit (0);
   }
 
-  for (i = 0; i < dim ; i++)
-    for (j = i+1; j < dim ; j++)
-      prgdComponent[j][i] = M[j][i];
+  lndet = gsl_linalg_LU_lndet (m);
 
-  /* success */
-  return(1);
+  gsl_permutation_free (perm);
+  gsl_matrix_free (m);
 
-} /* Cholesky */
+  return (lndet);
+
+} /* LnDeterminant_LU */
 
 
 /* ----------------------------------------------------------------------------
-   InvertMatrix_Chol
+   Log-determinant using Cholesky decomposition - gsl version, with scaling
+
+   The determinant is the sum of the squares of the diagonal elements of
+   the decomposition matrix. Actually, this is 30% slower than the non-gsl
+   version but should be more stable.
+*/
+double LnDeterminant_Chol_ (double **M, int dim)
+{
+  int i, j;
+  double lndet = 0;
+  static int inited = 0;
+  static int old_dim;
+  static gsl_matrix *m;
+  static gsl_vector *x;
+
+  if (!inited) {
+    m = gsl_matrix_alloc(dim, dim);
+    x = gsl_vector_alloc(dim);
+    inited = 1;
+    old_dim = dim;
+  }
+  else {
+    if (dim != old_dim) { /* avoid expensive allocation if not needed */
+      gsl_matrix_free(m);
+      gsl_vector_free(x);
+      m = gsl_matrix_alloc(dim, dim);
+      x = gsl_vector_alloc(dim);
+      old_dim = dim;
+    }
+  }
+
+  /* copy M lower triangular part and diagonal to m */
+  for (i = 0; i < dim; i++)
+    for (j = 0; j <= i; j++)
+      gsl_matrix_set(m, i, j, M[i][j]);
+
+  gsl_linalg_cholesky_decomp2(m, x);
+
+  for (i = 0; i < dim; i++)
+    lndet += log(gsl_matrix_get(m, i, i) / gsl_vector_get(x, i));
+
+  return (2 * lndet);
+
+} /* LnDeterminant_Chol */
+
+
+/* ----------------------------------------------------------------------------
+   InvertMatrix_Chol_ - gsl version
 
    Inverts matrix M using Cholesky decomposition.
    Matrix M is replaced by its inverse.
 */
-void InvertMatrix_Chol (double **M, int dim)
+void InvertMatrix_Chol_ (double **M, int dim)
 {
-  register int i, j, k;
-  double dSum;
+  int i, j;
+  static int inited = 0;
+  static int old_dim;
+  static gsl_matrix *m;
+  //static gsl_vector *x;
 
-  Cholesky (M, pdWorkMatrixSizeN, dim);
-
-  /* invert pdWorkMatrixSizeN */
-  for (i = 0; i < dim; i++) {
-    for (j = 0; j <= i; j++) {
-      dSum = (i == j ? 1.0 : 0.0);
-      for (k = i - 1; k >= j; k--)
-        dSum -= pdWorkMatrixSizeN[i][k] * M[j][k];
-      M[j][i] = dSum / pdWorkMatrixSizeN[i][i];
+  if (!inited) {
+    m = gsl_matrix_alloc(dim, dim);
+    //x = gsl_vector_alloc(dim);
+    inited = 1;
+    old_dim = dim;
+  }
+  else {
+    if (dim != old_dim) { /* avoid expensive allocation if not needed */
+      gsl_matrix_free(m);
+      //gsl_vector_free(x);
+      m = gsl_matrix_alloc(dim, dim);
+      //x = gsl_vector_alloc(dim);
+      old_dim = dim;
     }
   }
 
-  /* multiply by t(pdWorkMatrixSizeN) */
-  for (i = dim-1; i >= 0; i--) {
-    for (j = 0; j <= i; j++) {
-      dSum = (i < j ? 0.0 : M[j][i]);
-      for (k = i + 1; k < dim; k++)
-        dSum -= pdWorkMatrixSizeN[k][i] * M[j][k];
-      M[i][j] = M[j][i] = dSum / pdWorkMatrixSizeN[i][i];
-    }
-  }
+  /* copy M lower triangular part and diagonal to m */
+  for (i = 0; i < dim; i++)
+    for (j = 0; j <= i; j++)
+      gsl_matrix_set(m, i, j, M[i][j]);
+
+  gsl_linalg_cholesky_decomp(m);
+
+  gsl_linalg_cholesky_invert(m);
+
+  /* copy m to M */
+  for (i = 0; i < dim; i++)
+    for (j = 0; j < dim; j++)
+      M[i][j] = gsl_matrix_get(m, i, j);
 
 } /* InvertMatrix_Chol */
 
-
-/* ----------------------------------------------------------------------------
-   Log-determinant using Cholesky decomposition
-
-   The determinant is the sum of the squares of the diagonal elements of
-   the decomposition L matrix
-*/
-double LnDeterminant_Chol (double **M, int dim)
-{
-  register int i;
-  double det = 0;
-  static int local_dim = 0;
-  static double ** L = NULL; /* freeing it is costly; make it global? */
-
-  if (dim > local_dim) {
-    if (L) {
-      for (i = 0; i < local_dim; i++)
-	free(L[i]);
-      free (L);
-    }
-    L = InitdMatrix (dim, dim);
-    local_dim = dim;
-  }
-
-  Cholesky (M, L, dim);
-
-  for (i = 0; i < dim; i++)
-    det += log(L[i][i]);
-
-  return (2 * det);
-
-} /* LnDeterminant_Chol */
+#endif
 
 
 /* End */

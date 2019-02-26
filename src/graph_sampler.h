@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/>
+   See the GNU General Public License at <http://www.gnu.org/licenses/> 
 */
 
 #ifndef GS_H_DEFINED
@@ -27,11 +27,11 @@
 #include <string.h>
 #include <time.h>
 
-// #ifndef NO_LIBGSL
-// #include <gsl/gsl_matrix.h>
-// #include <gsl/gsl_linalg.h>
-// #include <gsl/gsl_cblas.h>
-// #endif
+#ifndef NO_LIBGSL
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_cblas.h>
+#endif
 
 #include "concordance.h"
 #include "convergence.h"
@@ -71,7 +71,7 @@ double DLoglikelihood_node_DBN (int node, double **pData);
 
 double DLoglikelihood_node_DBN_NA (int node, double **pData);
 
-void   GetCmdLineArgs (int cArg, char *const *rgszArg, char **pszFileIn,
+void   GetCmdLineArgs (int cArg, char *const *rgszArg, char **pszFileIn, 
                        char **pszPrefixOut);
 
 double GLoglikelihood_node (int node, double **pData);
@@ -84,7 +84,7 @@ double GLoglikelihood_node_DBN_NA (int node, double **pData);
 
 void   InitArrays (void);
 
-void   Loglikelihood_diff (int parent, int child, int diff,
+void   Loglikelihood_diff (int parent, int child, int diff, 
                            double **pData, double *logLdiff);
 double Loglikelihood_full (int N, double **pData, int *component,
                            int *component_size);
@@ -123,7 +123,6 @@ BOOL   bDBN;                /* sample dynamic Bayesian networks */
 BOOL   bHypergraph;         /* sample hypergraphs */
 int    nNodes;              /* the number of nodes in graph */
 double seed;                /* random generator seed */
-int    bInit;               /* 1 if RNG initialised, 0 until then */
 RDM_GEN_NAMES rdm_gen_name; /* if gsl available, random generator type */
 
 /* core computational variables */
@@ -135,6 +134,7 @@ int    **index_parents;     /* the list of current parents for each node */
 
 /* variables for basic Bernoulli prior */
 double **hyper_pB;          /* hyper parameters of the prior pairwise edges */
+double scale_pB;            /* optional multiplying scalar */
 BOOL   *bAllowed_parents;   /* Boolean: are parents allowed for each node */
 
 /* variables for edge concordance prior */
@@ -221,6 +221,7 @@ double  **pData;             /* data structure (a vector of data per node) */
 int     *pDataLevels;        /* number of codes per node for discrete data */
 PLISTIJ plistMissing;        /* list of missing data locations */
 BOOL    *bHasMissing;        /* missing data indicator for each node */
+unsigned long iN_to_print;   /* number of missing data imputations to print */
 
 /* variables for tempering */
 BOOL   bTempered;            /* flag for using tempering */
@@ -237,6 +238,14 @@ double *plnPi;               /* array of temperatures pseudo-priors */
 int    edgeP_thin;           /* step size for edge probability calculation */
 double **mat_sum;            /* cumulated edges counts over graphs */
 double **pdWorkMatrixSizeN;  /* work space */
+double **pdM1;              /* pdM's are likelihood calc helpers */
+double **pdM2;
+double **pdM3;
+double **pdM4;
+double **pdM5;
+double **pdM6;
+double **pdM7;
+double **tpd5;
 
 /* MCMC parameters */
 unsigned long nRuns, nBurnin, iter;

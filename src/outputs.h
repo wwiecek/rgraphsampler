@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/>
+   See the GNU General Public License at <http://www.gnu.org/licenses/> 
 */
 
 #ifndef OUTPUTS_H_DEFINED
@@ -100,7 +100,7 @@ void CloseOutputs (char *const prefixname);
 void CreateFileName (char *const filename, char *const prefixname,
                      char *const suffixname);
 void InitBuffer (PBITBUFFER buf);
-void InitOutputs (char *filename);
+void InitOutputs (char *const filename);
 int  Read_diff_buffered (FILE *pChainFile, PBITBUFFER buf, int *diff);
 int  ReadBitOffBuffer (FILE *pChainFile, PBITBUFFER buf, int *bit);
 void ReadChain ();

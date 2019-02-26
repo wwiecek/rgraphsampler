@@ -1,0 +1,29 @@
+# test input file for graph_sampler
+# simple random graph generation with 30 nodes, with a motif prior
+# =========================================================================
+
+n_runs    = 2E5;
+n_burn_in = 1E5;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+n_nodes = 30;
+
+autocycle = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {equanimous};
+
+motif_prior = true;
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.

@@ -1,0 +1,38 @@
+# test input file for graph_sampler
+# directed acyclic graph (BN) inference with 3 nodes, first 10 iterations
+# basic edge prior, dirichlet data model
+# =========================================================================
+
+n_runs    = 10;
+n_burn_in = 0;
+
+random_seed = 49740;
+
+n_nodes = 3;
+
+bayesian_network = true;
+
+initial_adjacency = matrix
+{0, 1, 0,
+ 0, 0, 1,
+ 0, 0, 0};
+
+hyper_pB = matrix {equanimous};
+
+likelihood = dirichlet;
+
+n_data_levels = array {2, 2, 2};
+
+n_data = 10;
+
+data = matrix {
+1, 1, 0, 1, 0, 0, 1, 0, 1, 0,
+0, 1, 0, 1, 0, 1, 1, 0, 1, 0,
+0, 1, 1, 1, 0, 1, 1, 0, 1, 0};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;
+save_edge_probabilies = true;
+
+# End.

@@ -208,7 +208,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 47 "gs_parser.y" /* yacc.c:1909  */
+#line 50 "gs_parser.y" /* yacc.c:1909  */
 
   double dval;
   int    ival;

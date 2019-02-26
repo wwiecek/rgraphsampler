@@ -1,0 +1,29 @@
+# test input file for graph_sampler
+# simple random graph generation with three nodes, testing no autocycle
+# =========================================================================
+
+n_runs    = 2E6;
+n_burn_in = 1E6;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+n_nodes = 3;
+
+autocycle = false;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {0,   0.1, 0.1,
+                   0.1, 0,   0.1,
+                   0.8, 0.1, 0};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+save_degree_counts = true;
+save_motifs_probabilies = true;
+
+# End.

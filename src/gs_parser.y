@@ -26,16 +26,19 @@
  /* prototypes */
  int  yylex(void);
  void yyerror(const char *message);
-
+ 
  extern int yylineno; /* from lexer */
-
+ 
  /* local variables */
  double*      pmat = 0x0;
+ PLISTI       plistindic = NULL;
+ PLISTELEMI   pleindic;
  PLISTD       plist = NULL;
  PLISTELEMD   ple;
  PLISTSTR     pstrlist = NULL;
  PLISTELEMSTR pstrle;
  PLISTVAR     pvarlist = NULL;
+ double       average;
  int          count;
  int          dim1, dim2;
  int          i, j;
@@ -283,7 +286,7 @@ statement:
    }
    else
      maximum_scc_size = $3; }
-
+  
  | n_saved_adjacency_id     '=' expr { n_saved_adjacency = $3; }
 
  | nRuns_id                 '=' expr {
@@ -307,9 +310,9 @@ statement:
  | rdm_generator_id         '=' MT19937 { rdm_gen_name = mt19937; }
 
  | nNodes_id            '=' expr {
-   //if (nNodes)  {yyerror("n_nodes cannot be reassigned"); }
+   if (nNodes)  {yyerror("n_nodes cannot be reassigned"); }
    if ($3 == 0) {yyerror("n_nodes cannot be zero");       }
-   nNodes            = $3; }
+   nNodes = $3; }
 
  | bPriorConcordance_id '=' expr {
    if (($3 == 0) || ($3 == 1)) bPriorConcordance = $3;
@@ -508,7 +511,7 @@ matrix_declaration: /* syntax: matrix{list} */
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $3;
+   scale_pB = $3;
  } /* end hyper_pB scalar * equanimous */
 
  | hyper_pB_id '=' MATRIX L_CBRACE EQUANIMOUS R_CBRACE '*' expr {
@@ -520,7 +523,7 @@ matrix_declaration: /* syntax: matrix{list} */
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $8;
+   scale_pB = $8;
  } /* end hyper_pB equanimous * scalar */
 
  | hyper_pB_id '=' expr '*' MATRIX L_CBRACE EQUANIMOUS R_CBRACE '*' expr {
@@ -532,7 +535,7 @@ matrix_declaration: /* syntax: matrix{list} */
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $3 * $10;
+   scale_pB = $3 * $10;
  } /* end hyper_pB scalar * equanimous * scalar */
 
  | hyper_pB_id '=' IMPORT L_CBRACE str R_CBRACE {
@@ -565,27 +568,70 @@ matrix_declaration: /* syntax: matrix{list} */
 
  | data_id '=' MATRIX L_CBRACE list_w_NA R_CBRACE {
    if (!nNodes)
-    yyerror("n_nodes must be set before defining matrices");
+     yyerror("n_nodes must be set before defining matrices");
 
    if (!nData)
-    yyerror("n_data must be set before defining data values");
+     yyerror("n_data must be set before defining data values");
 
    if (plist->lSize != (nNodes * nData)) /* problem */
-    yyerror("Data should have n_nodes * n_data elements");
+     yyerror("Data should have n_nodes * n_data elements");
 
-   if (!pData)
-    pData = InitdMatrix(nNodes, nData);
+   if (!pData) {
+     /* init global data array */
+     pData = InitdMatrix(nNodes, nData);
+     /* init a global list of the missing data coordinates */
+     plistMissing = InitijList();
+     /* init missing data indicator array (a flag per node) */
+     bHasMissing = InitiVector(nNodes);
+   }
    else
-    yyerror("Data redefinition is not allowed");
+     yyerror("Data redefinition is not allowed");
+
+   if (bNAData)
+     printf("Missing data will be imputed.\n\n");
 
    ple = plist->Head;
+   pleindic = plistindic->Head;
    for (i = 0; i < nNodes; i++) {
+     count = average = 0; /* reset */
      for (j = 0; j < nData; j++) {
-       pData[i][j] = ple->dVal;
+       if (pleindic->iVal == 1) { /* data is missing */
+         QueueijListItem(plistMissing, i, j); /* store location in queue */
+         bHasMissing[i] = TRUE;
+       }
+       else {
+         pData[i][j] = ple->dVal;
+         average = average + pData[i][j]; /* cumulate */
+         count += 1;
+       }
        ple = ple->next;
-     }
-   }
+       pleindic = pleindic->next;
+     } /* for j data */
+
+     /* avoid useless work */
+     if (bHasMissing[i] == TRUE) {
+       /* compute the actual average on non-missing data for node i */
+       if (count == 0) {
+         printf("Warning: node %d has all data missing.\n", i+1);
+         average = 0; /* arbitrary */
+       }
+       else {
+         average = average / count;
+       }
+
+       /* impute average */
+       PLISTELEMIJ pleIter = plistMissing->Head;
+       while (pleIter) {
+         if (pleIter->iVal == i)
+           pData[i][pleIter->jVal] = average;
+         pleIter = pleIter->next;
+       }
+     } /* if bHasMissing */
+   } /* for ith node */
+
    FreedList(&plist);
+   FreeiList(&plistindic);
+   
  } /* end explicit Data matrix */
 
  | data_id '=' IMPORT L_CBRACE str R_CBRACE {
@@ -596,10 +642,16 @@ matrix_declaration: /* syntax: matrix{list} */
    if (!nData)
     yyerror("n_data must be set before defining data values");
 
-   if (!pData)
-    pData = InitdMatrix(nNodes, nData);
+   if (!pData) {
+     /* init global data array */
+     pData = InitdMatrix(nNodes, nData);
+     /* init a global list of the missing data coordinates */
+     plistMissing = InitijList();
+     /* init missing data indicator array (a flag per node) */
+     bHasMissing = InitiVector(nNodes);
+   }
    else
-    yyerror("Data redefinition is not allowed");
+     yyerror("Data redefinition is not allowed");
 
    pstrle = pstrlist->Head;
    FILE *datafile;
@@ -607,18 +659,51 @@ matrix_declaration: /* syntax: matrix{list} */
    if (!datafile)
      yyerror("data file could not be opened");
 
+   char sztmp[4];
    for (i = 0; i < nNodes; i++) {
+     count = average = 0; /* reset */
      for (j = 0; j < nData; j++) {
        if (fscanf(datafile, "%lg", &(pData[i][j])) < 1) {
          yyerror("cannot read all data required");
        }
-       else {
-         if (isnan(pData[i][j]))
+       else { /* data read in OK */
+         /* hack to check for nan */
+         snprintf(sztmp, 4, "%g", pData[i][j]);
+         if (!strcmp(sztmp, "nan")) { /* data is missing */
+           if (!bNAData)
+             printf("Missing data will be imputed.\n\n");           
            bNAData = TRUE;
+           QueueijListItem(plistMissing, i, j); /* store location in queue */
+           bHasMissing[i] = TRUE;
+         }
+         else {
+           average = average + pData[i][j]; /* cumulate */
+           count += 1;
+         }
        }
-     }
-   }
+     } /* for j data */
 
+     /* avoid useless work */
+     if (bHasMissing[i] == TRUE) {
+       /* compute the actual average on non-missing data for node i */
+       if (count == 0) {
+         printf("Warning: node %d has all data missing.\n", i+1);
+         average = 0; /* arbitrary */
+       }
+       else {
+         average = average / count;
+       }
+
+       /* impute average */
+       PLISTELEMIJ pleIter = plistMissing->Head;
+       while (pleIter) {
+         if (pleIter->iVal == i)
+           pData[i][pleIter->jVal] = average;
+         pleIter = pleIter->next;
+       }
+     } /* if bHasMissing */
+   } /* for ith node */
+ 
    fclose(datafile);
 
  } /* end imported Data matrix */
@@ -628,7 +713,7 @@ array_declaration: /* syntax: array{list} */
 
  chain_file_names_id '=' ARRAY L_CBRACE str_list R_CBRACE {
 
-   nChains = pstrlist->lSize; // printf("nChains = %d\n", nChains);
+   nChains = pstrlist->lSize; // printf("nChains = %d\n", nChains); 
 
    if (nChains == 0)
      yyerror("empty file list");
@@ -717,17 +802,23 @@ list_w_NA:
  expr {
    plist = InitdList();
    QueuedListItem (plist, $1);
+   plistindic = InitiList();
+   QueueiListItem (plistindic, 0); /* normal number */
  }
  | NA {
    plist = InitdList();
-   QueuedListItem (plist, nan("")); /* C99 IEEE floating point standard */
+   QueuedListItem (plist, 0);      /* arbitrary zero, will be imputed */
+   plistindic = InitiList();
+   QueueiListItem (plistindic, 1); /* flag missing data */
    bNAData = TRUE;
  }
  | list_w_NA ',' expr {
    QueuedListItem (plist, $3);
+   QueueiListItem (plistindic, 0); /* normal number */
  }
  | list_w_NA ',' NA   {
-   QueuedListItem (plist, nan("")); /* C99 IEEE floating point standard */
+   QueuedListItem (plist, 0);      /* arbitrary zero, will be imputed */
+   QueueiListItem (plistindic, 1); /* flag missing data */
    bNAData = TRUE;
  }
  | { yyerror("empty list"); }

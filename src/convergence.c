@@ -25,12 +25,14 @@
 
    Check the convergence of a set of MCMC chains, using Gelman and Rubin Rhat
    criterion. The binary chain files are used.
-   The array parameters pdmat_gmean and pdmat_vari are initialized and filled.
+   The array parameters pdmat_gmean and pdmat_vari are initialized and filled
+   but only each time that the adjacency matrix is fully updated (all elements
+   sampled).
 */
 void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
 {
-  unsigned long i, j, k, l, m, N;
-  int           nTmp, diff;
+  unsigned long i, j, k, l, m, N, n_at_targetT, previous_n;
+  int           nTmp, diff, at_elem;
   BOOL          stop;
   int           *pimat_adj = NULL;
   unsigned long *plmat_sum, *plmat_gsum;
@@ -61,20 +63,21 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
       printf ("\nDimension: %d\n", nTmp); 
       lexerr("nNodes specified and found differ (or differ between chains)");
     }
-    else
+    else {
       nNodes = nTmp;
-
+      N = nNodes * nNodes;
+    }
   } /* for each file */
 
   /* now that we have nNodes set or checked, initialize working arrays */
-  pimat_adj  = InitiVector(nNodes * nNodes);
-  pdmat_mean = InitdVector(nNodes * nNodes);
+  pimat_adj  = InitiVector(N);
+  pdmat_mean = InitdVector(N);
 
-  plmat_sum  = InitulVector(nNodes * nNodes);
-  plmat_gsum = InitulVector(nNodes * nNodes);
+  plmat_sum  = InitulVector(N);
+  plmat_gsum = InitulVector(N);
   
-  *pdmat_gmean = InitdVector(nNodes * nNodes); /* is a parameter */
-  *pdmat_vari  = InitdVector(nNodes * nNodes); /* is a parameter */
+  *pdmat_gmean = InitdVector(N); /* is a parameter */
+  *pdmat_vari  = InitdVector(N); /* is a parameter */
 
   static BITBUFFER buf;
   
@@ -84,7 +87,7 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
 
     InitBuffer(&buf);
     
-    for (j = 0; j < nNodes * nNodes; j++)
+    for (j = 0; j < N; j++)
       if (!ReadBitOffBuffer(rgpFiles[i], &buf, &(pimat_adj[j])))
         lexerr("cannot read the initial adjacency matrix");
 
@@ -99,7 +102,7 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
 
     /* initialize an edge summation matrix if starting at iteration zero */
     if (nConvergence_start == 0)
-      for (j = 0; j < nNodes * nNodes; j++) 
+      for (j = 0; j < N; j++) 
         plmat_sum[j] = pimat_adj[j];
 
     /* iterate through the file, matrix by matrix,
@@ -118,7 +121,7 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
           break;
         }
         else
-          lexerr ("unknown reading error");
+          lexerr("unknown reading error");
       }
 
       if (diff > 0)
@@ -126,19 +129,29 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
       if (diff < 0)
         pimat_adj[m]--;
 
-      /* cumulate the adjacency matrices, i.e. cumulate edge counts */
-      if ((j + 1) == nConvergence_start) 
-        for (l = 0; l < nNodes * nNodes; l++)
-          plmat_sum[l] = pimat_adj[l];
-      else
-        if ((j + 1) > nConvergence_start)
-          for (l = 0; l < nNodes * nNodes; l++)
-            plmat_sum[l] = plmat_sum[l] + pimat_adj[l];
-
       j++;
       m++;
-      if (m == nNodes * nNodes)
+      if (m == N)
         m = 0;
+
+      /* cumulate the adjacency matrices, i.e. cumulate edge counts */
+      if (j == nConvergence_start) {
+        n_at_targetT = 1;
+        at_elem = 0; /* element counter to trigger full updates */
+        for (l = 0; l < N; l++)
+          plmat_sum[l] = pimat_adj[l];
+      }
+      else {
+        if (j > nConvergence_start) {
+          at_elem++;
+          if (at_elem == N) {
+            n_at_targetT++;
+            at_elem = 0;
+            for (l = 0; l < N; l++)
+              plmat_sum[l] = plmat_sum[l] + pimat_adj[l];
+          }
+        }
+      }
 
       if ((nConvergence_end != 0) && (j == nConvergence_end))
 	stop = TRUE;
@@ -151,15 +164,15 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
     fclose (rgpFiles[i]);
 
     if (i == 0)
-      N = nConvergence_end - nConvergence_start + 1;
+      previous_n = n_at_targetT;
     else {
-      if ((nConvergence_end - nConvergence_start + 1) != N)
-        lexerr("chain length differ");
+      if (n_at_targetT != previous_n)
+        lexerr("chain lengths differ");
     }
     
     /* edge probability matrix estimate: */
-    for (l = 0; l < nNodes * nNodes; l++)
-      pdmat_mean[l] = plmat_sum[l] / (double) N;
+    for (l = 0; l < N; l++)
+      pdmat_mean[l] = plmat_sum[l] / (double) n_at_targetT;
 
     if (nNodes < LARGE_N) { /* for small matrices */
       printf("\nEdge probabilities for chain %ld:\n", i+1);
@@ -171,19 +184,19 @@ void Read_chain (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
     }
 
     /* cumulate the variances of each probability (equal to (mean)(1 - mean)) */
-    for (l = 0; l < nNodes * nNodes; l++)
+    for (l = 0; l < N; l++)
       (*pdmat_vari)[l] = (*pdmat_vari)[l] + pdmat_mean[l] * (1 - pdmat_mean[l]);
 
     /* accumulate sums to form the inter-chain variance */
-    for (l = 0; l < nNodes * nNodes; l++) {
+    for (l = 0; l < N; l++) {
       plmat_gsum[l] = plmat_gsum[l] + plmat_sum[l];
     }
 
   } /* end for i files */
 
   /* inter-chain means */
-  for (l = 0; l < nNodes * nNodes; l++)
-    (*pdmat_gmean)[l] = plmat_gsum[l] / (nChains * (double) N);
+  for (l = 0; l < N; l++)
+    (*pdmat_gmean)[l] = plmat_gsum[l] / (nChains * (double) n_at_targetT);
 
   /* free local working arrays */
   free(pimat_adj);
@@ -287,8 +300,8 @@ void Read_edgeP (FILE **rgpFiles, double **pdmat_gmean, double **pdmat_vari)
 */
 void Convergence_incremental (FILE **rgpFiles)
 {
-  unsigned long i, j, k, l, m, N;
-  int           nTmp, diff;
+  unsigned long i, j, k, l, m, N, n_at_targetT;
+  int           nTmp, diff, at_elem;
   BOOL          stop;
   double        dmaxRhat;
 
@@ -351,24 +364,26 @@ void Convergence_incremental (FILE **rgpFiles)
 
   } /* for each file */
 
+  N = nNodes * nNodes;
+
   /* now that we have nNodes set or checked, initialize working arrays */
-  pimat_adj   = InitiMatrix(nChains, nNodes * nNodes);
-  pdmat_mean  = InitdMatrix(nChains, nNodes * nNodes);
+  pimat_adj   = InitiMatrix(nChains, N);
+  pdmat_mean  = InitdMatrix(nChains, N);
 
-  plmat_sum   = InitulMatrix(nChains, nNodes * nNodes);
+  plmat_sum   = InitulMatrix(nChains, N);
 
-  pdmat_vari  = InitdVector(nNodes * nNodes);
-  pdmat_gmean = InitdVector(nNodes * nNodes);
-  pdmat_gvari = InitdVector(nNodes * nNodes);
-  pdmat_rhat  = InitdVector(nNodes * nNodes);
+  pdmat_vari  = InitdVector(N);
+  pdmat_gmean = InitdVector(N);
+  pdmat_gvari = InitdVector(N);
+  pdmat_rhat  = InitdVector(N);
 
-  plmat_gsum  = InitulVector(nNodes * nNodes);
+  plmat_gsum  = InitulVector(N);
   
   for (i = 0; i < nChains; i++) {
 
     /* read the initial adjacency matrix (flat!) */
     /* packed bit format version */
-    for (j = 0; j < nNodes * nNodes; j++)
+    for (j = 0; j < N; j++)
       if (!ReadBitOffBuffer(rgpFiles[i], &(bufs[i]), &(pimat_adj[i][j])))
         lexerr("cannot read the initial adjacency matrix");
 
@@ -383,7 +398,7 @@ void Convergence_incremental (FILE **rgpFiles)
 
     /* initialize an edge summation matrix if starting at iteration zero */
     if (nConvergence_start == 0)
-      for (j = 0; j < nNodes * nNodes; j++) 
+      for (j = 0; j < N; j++) 
         plmat_sum[i][j] = pimat_adj[i][j];
 
   } /* for each file */
@@ -417,28 +432,41 @@ void Convergence_incremental (FILE **rgpFiles)
         pimat_adj[i][m]--;
 
       /* cumulate the adjacency matrices, i.e. cumulate edge counts */
-      if ((j + 1) == nConvergence_start) 
-        for (l = 0; l < nNodes * nNodes; l++)
+      if ((j + 1) == nConvergence_start) {
+        if (i == 0) {
+          n_at_targetT = 1;
+          at_elem = 0; /* element counter to trigger full updates */
+        }
+        for (l = 0; l < N; l++)
           plmat_sum[i][l] = pimat_adj[i][l];
-      else
-        if ((j + 1) > nConvergence_start)
-          for (l = 0; l < nNodes * nNodes; l++)
-            plmat_sum[i][l] += pimat_adj[i][l];
+      }
+      else {
+        if ((j + 1) > nConvergence_start) {
+          if (i == 0) {
+            at_elem++;
+            if (at_elem == N) {
+              n_at_targetT++;              
+              at_elem = 0;
+            }
+          }
+          if (at_elem == 0)
+            for (l = 0; l < N; l++)
+              plmat_sum[i][l] += pimat_adj[i][l];
+        }
+      }
 
     } /* for chain i */
 
     j++; /* one more iteration read */
     m++;
-    if (m == nNodes * nNodes)
+    if (m == N)
       m = 0;
 
-    N = j - nConvergence_start + 1;
-
-    if (N > 0) {
+    if ((n_at_targetT > 0) && (at_elem == 0)) {
       for (i = 0; i < nChains; i++) {
-        for (l = 0; l < nNodes * nNodes; l++) {
+        for (l = 0; l < N; l++) {
           /* edge probability matrices */
-          pdmat_mean[i][l] = plmat_sum[i][l] / (double) N;
+          pdmat_mean[i][l] = plmat_sum[i][l] / (double) n_at_targetT;
 
           /* cumulate the intra-chain variances (equal to (mean)(1 - mean)) */
           if (i == 0)
@@ -449,32 +477,32 @@ void Convergence_incremental (FILE **rgpFiles)
       } /* for i chains */
 
       /* intra-chain variance */
-      for (l = 0; l < nNodes * nNodes; l++) {
+      for (l = 0; l < N; l++) {
         pdmat_vari[l] = pdmat_vari[l] / nChains;
       }
 
       /* accumulate sums to form the inter-chain mean and variance */
-      for (l = 0; l < nNodes * nNodes; l++) {
+      for (l = 0; l < N; l++) {
         plmat_gsum[l] = plmat_sum[0][l];
       }
       for (i = 1; i < nChains; i++) {
-        for (l = 0; l < nNodes * nNodes; l++) {
+        for (l = 0; l < N; l++) {
           plmat_gsum[l] += plmat_sum[i][l];
         }
       }
 
       /* inter-chain means */
-      for (l = 0; l < nNodes * nNodes; l++)
-        pdmat_gmean[l] = plmat_gsum[l] / (nChains * (double) N);
+      for (l = 0; l < N; l++)
+        pdmat_gmean[l] = plmat_gsum[l] / (nChains * (double) n_at_targetT);
 
       /* inter-chain variance */
-      for (l = 0; l < nNodes * nNodes; l++) {
+      for (l = 0; l < N; l++) {
         pdmat_gvari[l] = pdmat_gmean[l] * (1 - pdmat_gmean[l]);
       }
 
       /* R_hat ratio of inter over intra-chain variances */
       dmaxRhat = 0;
-      for (l = 0; l < nNodes * nNodes; l++) {
+      for (l = 0; l < N; l++) {
         // do not do the diagonal for BNs
         if (!((l % (nNodes+1) == 0) && bBN)) {
           if (pdmat_vari[l] != 0)
@@ -496,7 +524,7 @@ void Convergence_incremental (FILE **rgpFiles)
       /* write max Rhat to convergence output file */
       fprintf(pConvergenceFile, "%ld\t%g\n", j, dmaxRhat);
 
-    } /* if N > 0) */
+    } /* if n_at_targetT > 0) */
 
     if ((nConvergence_end != 0) && (j == nConvergence_end))
       stop = TRUE;
@@ -536,7 +564,7 @@ void Convergence_incremental (FILE **rgpFiles)
 */
 void ConvergenceAnalysis (void)
 {
-  unsigned long l;
+  unsigned long l, N;
   double        dmaxRhat;
 
   double *pdmat_gmean = NULL, *pdmat_vari = NULL;
@@ -561,13 +589,15 @@ void ConvergenceAnalysis (void)
       Read_chain(rgpFiles, &pdmat_gmean, &pdmat_vari);
 
     if (bConvergence_std == 2)
-      Read_edgeP (rgpFiles, &pdmat_gmean, &pdmat_vari);
+      Read_edgeP(rgpFiles, &pdmat_gmean, &pdmat_vari);
+
+    N = nNodes * nNodes;
 
     /* now that we have nNodes set or checked, initialize working arrays */
-    pdmat_gvari = InitdVector(nNodes * nNodes);
-    pdmat_rhat  = InitdVector(nNodes * nNodes);
+    pdmat_gvari = InitdVector(N);
+    pdmat_rhat  = InitdVector(N);
 
-    for (l = 0; l < nNodes * nNodes; l++) {
+    for (l = 0; l < N; l++) {
       /* intra-chain variances */
       pdmat_vari[l] = pdmat_vari[l] / nChains;
 
@@ -577,7 +607,7 @@ void ConvergenceAnalysis (void)
 
     /* R_hat ratios of inter over intra-chain variances */
     dmaxRhat = 0;
-    for (l = 0; l < nNodes * nNodes; l++) {
+    for (l = 0; l < N; l++) {
       // do not do the diagonal for BNs
       if (!((l % (nNodes+1) == 0) && bBN)) {
         if (pdmat_vari[l] != 0)

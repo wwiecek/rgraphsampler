@@ -1554,63 +1554,60 @@ YY_RULE_SETUP
 case YY_STATE_EOF(INITIAL):
 #line 181 "gs_lexer.l"
 { // put dummy stuff here (to avoid stupid compiler warnings)
-            // input(); yyunput(0, "a");
-            // yy_flush_buffer();
-            printf("Terminating the parser.\n");
-            yyterminate();
+            //input(); yyunput(0, "a");
             // instruct to get out
             return end_id; }
 	YY_BREAK
 case 72:
 /* rule 72 can match eol */
 YY_RULE_SETUP
-#line 189 "gs_lexer.l"
+#line 186 "gs_lexer.l"
 { lineno++; } /* skip but count */
 	YY_BREAK
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 191 "gs_lexer.l"
+#line 188 "gs_lexer.l"
 { lineno++; } /* skip but count */
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 193 "gs_lexer.l"
+#line 190 "gs_lexer.l"
 { return *yytext; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 195 "gs_lexer.l"
+#line 192 "gs_lexer.l"
 { return L_CBRACE; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 197 "gs_lexer.l"
+#line 194 "gs_lexer.l"
 { return R_CBRACE; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 199 "gs_lexer.l"
+#line 196 "gs_lexer.l"
 { return L_PARENTHESIS; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 201 "gs_lexer.l"
+#line 198 "gs_lexer.l"
 { return R_PARENTHESIS; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 203 "gs_lexer.l"
+#line 200 "gs_lexer.l"
 { ; } /* skip whitespace, including carriage return */
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 205 "gs_lexer.l"
+#line 202 "gs_lexer.l"
 { ; } /* skip comments */
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 207 "gs_lexer.l"
+#line 204 "gs_lexer.l"
 { yylval.pchar = yytext;
             // printf("Temporary variable \"%s\"\n\n", yytext);
             return IDENTIFIER; }
@@ -1618,7 +1615,7 @@ YY_RULE_SETUP
 case 82:
 /* rule 82 can match eol */
 YY_RULE_SETUP
-#line 211 "gs_lexer.l"
+#line 208 "gs_lexer.l"
 { yylval.pchar = yytext;
             // printf("Chain file name \"%s\"\n\n", yytext);
             return CHAINFILENAME; }
@@ -1626,22 +1623,22 @@ YY_RULE_SETUP
 case 83:
 /* rule 83 can match eol */
 YY_RULE_SETUP
-#line 215 "gs_lexer.l"
+#line 212 "gs_lexer.l"
 { yylval.pchar = yytext;
             // printf("File name \"%s\"\n\n", yytext);
             return FILENAME; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 219 "gs_lexer.l"
+#line 216 "gs_lexer.l"
 { return *yytext; } /* let yacc take care of the junk */
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 221 "gs_lexer.l"
+#line 218 "gs_lexer.l"
 ECHO;
 	YY_BREAK
-#line 1644 "lex.yy.c"
+#line 1641 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2658,7 +2655,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 221 "gs_lexer.l"
+#line 218 "gs_lexer.l"
 
 
 int yywrap(void) {

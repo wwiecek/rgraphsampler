@@ -24,9 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #ifndef NO_LIBGSL
-// #include <gsl/gsl_rng.h>
-// #endif
+#ifndef NO_LIBGSL
+#include <gsl/gsl_rng.h>
+#endif
 
 #include "random.h"
 #include "matrices.h"
@@ -40,18 +40,18 @@
 double LnBB (long x, long n, int a, int b)
 {
   if (a == 1)
-    return (// term C(n,x)
+    return (/* term C(n,x) */
             lgamma(n+1) - lgamma(n-x+1)
-            // numerator Beta(x+a,n-x+b)
+            /* numerator Beta(x+a,n-x+b) */
             + lgamma(n-x+b) - lgamma(n+1+b)
-            // denominator Beta(a,b)
+            /* denominator Beta(a,b) */
             + log(b));
   else
-    return (// term C(n,x)
+    return (/* term C(n,x) */
             lgamma(n+1) - lgamma(x+1) - lgamma(n-x+1)
-            // numerator Beta(x+a,n-x+b)
+            /* numerator Beta(x+a,n-x+b) */
             + lgamma(x+a) + lgamma(n-x+b) - lgamma(n+a+b)
-            // denominator Beta(a,b)
+            /* denominator Beta(a,b) */
             - lgamma(a) - lgamma(b) + lgamma(a+b));
 } /* LnBB */
 
@@ -114,6 +114,7 @@ double LnGamma (double x)
            by LU here)
    df: degrees of freedom
 
+
    Saves the constant in case to speed up (likely) repeated calls with the
    same df.
 */
@@ -125,12 +126,14 @@ double LnMultivariateT (double *x, int dim, /* double *mu, */
   int           i, j;
   double        dtmp1, dtmp2, log_det;
 
+
   /* first term, with ratio of 2 Gamma functions */
   if (df != stored_df) {
     stored_df = df;
     stored_constant = LnGamma((df + dim) * 0.5) - LnGamma(df * 0.5) -
                       dim * 0.5 * log(df * PI);
   }
+
 
   /* (x_i - mu)' * Lambda * (x_i - mu) */
   dtmp1 = 0;
@@ -141,6 +144,7 @@ double LnMultivariateT (double *x, int dim, /* double *mu, */
     }
     dtmp1 += dtmp2 * ( x[j] /* - mu[j] */ );
   }
+
 
   /* determinant of Lambda */
   /* log_det = LnDeterminant_LU (lambda, dim); */
@@ -171,70 +175,90 @@ double LnPoisson (int n, double lambda)
 /* ----------------------------------------------------------------------------
    LnRatio
 
+
    Log-density of the ratio for prior predictive for loops
    Corresponds to log(C'0) calculation in the paper
 
+
    Inputs (notation as in the paper):
-   x: random variable (matrix of order p x p)
-   vc: sample variance covariance matrix (order m x m)
-   n: dimension (number of data points) of x
-   m: number of nodes involved in a loop
-   k: number of parents + 1
-   q: degree of freedom of the Wishart distribution on precision matrix
-      (implicitly the scale matrix is the identity matrix, so its
-      determinant is 1).
+   x:       random variable
+   vc:      sample variance covariance matrix (order n_loop x n_loop)
+   n_data:  number of data points
+   n_loop:  number of nodes involved in a loop
+   n_pp1:   number of parents + 1
+   q:       degree of freedom of the Wishart distribution on precision matrix
+
+
+   diag:    Wishart scale matrix diagonal elements value
+   offdiag: Wishart scale matrix off-diagonal elements value
 
    Constraints:
-   q >= m
+
+   q >= n_loop
 */
-double LnRatio (double **x, double **vc, int n, int m, int k, int q,
-                double diag, double offdiag, int nNodes)
+double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
+                int q, double diag, double offdiag, int nNodes)
 {
-  double c0;
-  int    i, p;
+
+  int i, j;
   double log_det, log_det1;
-  static double **kappa; //Inv-Wishart matrix parameter
 
-  /* printf("n loop %d, k %d, q %d \n", m, k, q); */
 
-  p = q + n - k; /* p = IW parameter + n datapoints - n parents - 1 */
-  c0 = 0; /* constant term */
 
-  /* Calculate q/2 * log(det(kappa))... if needed */
-  if(offdiag != 0.0) {
-    if(!kappa) { //initialise kappa (but only if off-diag != 0)
+
+  int p = q + n_data - n_pp1; /* = IW df + n datapoints - n parents - 1 */
+  double c0 = 0; /* constant term */
+
+  static double **kappa; /* Inv-Wishart matrix parameter */
+
+  /* Calculate q/2 * log(det(kappa)) if needed */
+  if (offdiag != 0.0) {
+    if (!kappa) { /* initialize kappa (but only if off-diag != 0) */
       kappa = InitdMatrix(nNodes, nNodes);
-      for(i = 0; i < nNodes; i++) {
-        for(int j =0; j < nNodes; j++) {
-          if(i==j) { kappa[i][j] = diag;
-          } else { kappa[i][j] = offdiag; }
+      for (i = 0; i < nNodes; i++) {
+        for (j = 0; j < nNodes; j++) {
+          if (i == j)
+            kappa[i][j] = diag;
+          else
+            kappa[i][j] = offdiag;
         }
       }
     }
-    //we could store det kappa's of different sizes, but for now let's live with this!
-    c0 += 0.5 * q * LnDeterminant_Chol(kappa, m);
-  } else if(diag != 1.0) { //if there's only diagonal, no need for LnDet()
-    c0 += 0.5 * q * m * log(diag);
+
+    /* We should store det kappa's of different sizes,
+       but for now let's live with this */
+    c0 += 0.5 * q * LnDeterminant_Chol(kappa, n_loop);
+
+
   }
-  /* Calculate MultivariateGamma_Nloop(p) - MultivariateGamma_Nloop(q) */
-  for (i = 1; i <= m; i++) {
-    c0 += LnGamma((p * 0.5) + (1 - i) * 0.5);
-    // printf("c0 (after addition of LnGamma) = %f \n", c0);
-    c0 -= LnGamma((q * 0.5) + (1 - i) * 0.5);
-    // printf("c0 (after subtraction of LnGamma) = %f \n", c0);
+  else { /* If there are only diagonal elements, no need for LnDet() */
+    if (diag != 1.0) {
+      c0 += 0.5 * q * n_loop * log(diag);
+    }
   }
 
-  /* Calculate powers (log-transformed) of 2 and 2Pi */
-  c0 += (m * (k - n) * 0.5 * log(2 * PI)) +
-        ((m * (n - k) * 0.5) * log(2));
-  // printf("c0 (after addition of powers of 2 and 2Pi) = %f \n", c0);
+  /* Calculate MultivariateGamma_Nloop(p) - MultivariateGamma_Nloop(q) */
+  for (i = 1; i <= n_loop; i++) {
+    c0 += LnGamma((p * 0.5) + (1 - i) * 0.5);
+
+    c0 -= LnGamma((q * 0.5) + (1 - i) * 0.5);
+
+  }
+
+
+  /* Calculate log-transformed power of Pi */
+
+
+
+
+  c0 += n_loop * (n_pp1 - n_data) * 0.5 * log(PI);
 
   /* Calculate log determinants of (X'X) and (VC + I) */
-  log_det = LnDeterminant_Chol (x, k);
+  log_det = LnDeterminant_Chol (x, n_pp1);
 
-  log_det1 = LnDeterminant_Chol (vc, m);
+  log_det1 = LnDeterminant_Chol (vc, n_loop);
 
-  return c0 - (m * 0.5 * log_det) - (p * 0.5 * log_det1);
+  return (c0 - (n_loop * 0.5 * log_det) - (p * 0.5 * log_det1));
 
 } /* LnRatio */
 
@@ -248,6 +272,7 @@ double LnRatio (double **x, double **vc, int n, int m, int k, int q,
    mu: mean
    lambda: precision (inverse of variance)
    df: degrees of freedom
+
 
    Saves df in case to speed up (likely) repeated calls with the same df.
 */
@@ -273,13 +298,18 @@ double LnT (double x, double mu, double lambda, int df)
    We have two versions of Randoms() depending whether we use gsl or not
 */
 
+#ifdef NO_LIBGSL
 
 /* ----------------------------------------------------------------------------
    Global definition, private
 */
 
 static RANDREC  vRandRec;
-//static int bInit = 0;
+static int bInit = 0;
+
+void resetRNG() {
+  bInit = 0; //just to avoid adding dependencies on other files
+}
 
 /* ----------------------------------------------------------------------------
    Randoms, standalone version
@@ -302,8 +332,8 @@ double Randoms (void)
 {
 #define a  16807.0
 #define m  2147483647.0
-#define q  127773.0   // m Div a
-#define r  2836.0     // m Mod a
+#define q  127773.0   /* m Div a */
+#define r  2836.0     /* m Mod a */
 
   double hi, test;
 
@@ -332,7 +362,7 @@ double Randoms (void)
 */
 void InitRandoms (const int rdm_gen_name, double dSeed)
 {
-  if (!bInit) { // initialize
+  if (!bInit) { /* initialize */
     int bCorrected = 0;
 
     if (dSeed == 0.0) {
@@ -341,7 +371,7 @@ void InitRandoms (const int rdm_gen_name, double dSeed)
     }
 
     if (dSeed < 0)
-      dSeed = -dSeed; // Don't announce this correction
+      dSeed = -dSeed; /* Don't announce this correction */
 
     if (dSeed < SEED_MIN) {
       dSeed = SEED_MIN + (dSeed/SEED_MIN) / (SEED_MAX-SEED_MIN);
@@ -355,7 +385,7 @@ void InitRandoms (const int rdm_gen_name, double dSeed)
 
     assert ((/* Invalid Seed */ dSeed >= SEED_MIN && dSeed <= SEED_MAX));
 
-    // Assign valid seed
+    /* Assign valid seed */
 
     if (bCorrected)
       printf ("SetSeed():  corrected out of range random number seed\n"
@@ -367,12 +397,76 @@ void InitRandoms (const int rdm_gen_name, double dSeed)
     printf ("GSL not available, "
             "using Park and Miller random number generator.\n\n");
 
-    // next calls to InitRandoms will do nothing
+    /* next calls to InitRandoms will do nothing */
     bInit = 1;
   }
 
 } /* InitRandoms, non-gsl version */
 
+
+#else  /* gsl version, preferred: */
+
+
+/* ----------------------------------------------------------------------------
+   Global definitions, private
+*/
+
+static const gsl_rng_type * genType;
+static gsl_rng * rGenerator;
+static int bInit = 0;
+
+void resetRNG() {
+  bInit = 0; //just to avoid adding dependencies on other files
+}
+
+/* ----------------------------------------------------------------------------
+   Randoms, gsl version
+*/
+double Randoms (void)
+{
+
+  return(gsl_rng_uniform(rGenerator));
+
+} /* Randoms, gsl version */
+
+
+/* ----------------------------------------------------------------------------
+   InitRandoms, gsl version
+
+   Sets vRandRec.seed to given dSeed, silently corrects an invalid dSeed.
+*/
+void InitRandoms (const int rdm_gen_name, double dSeed)
+{
+  if (!bInit) { /* initialize */
+
+    /* initialize a random generator of given type */
+    switch (rdm_gen_name) {
+    case mt19937:
+      genType = gsl_rng_default;
+      break;
+    case taus2:
+      genType = gsl_rng_taus2;
+      break;
+    default:
+      genType = gsl_rng_default;
+    }
+
+    /* create an instance of a generator of type genType */
+    rGenerator = gsl_rng_alloc (genType);
+
+    /* set the seed */
+    gsl_rng_set (rGenerator, (unsigned long int) dSeed);
+
+    printf ("Using GNU Scientific Library (GSL) '%s' "
+            "random number generator.\n\n", gsl_rng_name (rGenerator));
+
+    /* next calls to InitRandoms will do nothing */
+    bInit = 1;
+  }
+
+} /* InitRandoms, gsl version */
+
+#endif
 
 
 /* end */

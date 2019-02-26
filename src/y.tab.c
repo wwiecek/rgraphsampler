@@ -77,23 +77,26 @@
  /* prototypes */
  int  yylex(void);
  void yyerror(const char *message);
-
+ 
  extern int yylineno; /* from lexer */
-
+ 
  /* local variables */
  double*      pmat = 0x0;
+ PLISTI       plistindic = NULL;
+ PLISTELEMI   pleindic;
  PLISTD       plist = NULL;
  PLISTELEMD   ple;
  PLISTSTR     pstrlist = NULL;
  PLISTELEMSTR pstrle;
  PLISTVAR     pvarlist = NULL;
+ double       average;
  int          count;
  int          dim1, dim2;
  int          i, j;
  char         *current_var;
 
 
-#line 97 "y.tab.c" /* yacc.c:339  */
+#line 100 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -291,7 +294,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 47 "gs_parser.y" /* yacc.c:355  */
+#line 50 "gs_parser.y" /* yacc.c:355  */
 
   double dval;
   int    ival;
@@ -300,7 +303,7 @@ union YYSTYPE
   double *parray;
   char   *pchar;
 
-#line 304 "y.tab.c" /* yacc.c:355  */
+#line 307 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -317,7 +320,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 321 "y.tab.c" /* yacc.c:358  */
+#line 324 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -622,16 +625,16 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   159,   159,   160,   161,   162,   163,   164,   168,   179,
-     185,   189,   193,   195,   197,   199,   201,   203,   207,   211,
-     215,   219,   223,   227,   231,   233,   235,   237,   239,   244,
-     249,   254,   255,   257,   259,   266,   273,   280,   287,   289,
-     301,   303,   305,   307,   309,   314,   318,   320,   324,   328,
-     330,   334,   335,   337,   341,   342,   344,   348,   360,   385,
-     399,   418,   442,   466,   490,   502,   514,   526,   538,   566,
-     591,   629,   657,   680,   706,   710,   713,   717,   721,   726,
-     729,   733,   737,   741,   745,   749,   752,   756,   757,   758,
-     759,   764,   765,   766,   767,   769,   770
+       0,   162,   162,   163,   164,   165,   166,   167,   171,   182,
+     188,   192,   196,   198,   200,   202,   204,   206,   210,   214,
+     218,   222,   226,   230,   234,   236,   238,   240,   242,   247,
+     252,   257,   258,   260,   262,   269,   276,   283,   290,   292,
+     304,   306,   308,   310,   312,   317,   321,   323,   327,   331,
+     333,   337,   338,   340,   344,   345,   347,   351,   363,   388,
+     402,   421,   445,   469,   493,   505,   517,   529,   541,   569,
+     637,   714,   742,   765,   791,   795,   798,   802,   808,   815,
+     819,   824,   828,   832,   836,   840,   843,   847,   848,   849,
+     850,   855,   856,   857,   858,   860,   861
 };
 #endif
 
@@ -1574,7 +1577,7 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 168 "gs_parser.y" /* yacc.c:1646  */
+#line 171 "gs_parser.y" /* yacc.c:1646  */
     {
    // printf("Found user variable \"%s\"\n", $1);
    // printf ("yylval.pchar: %s\n", yylval.pchar);
@@ -1583,241 +1586,241 @@ yyreduce:
    current_var = CopyString((yyvsp[0].pchar));
    // PrintVarList(stdout, pvarlist->Head, NULL);
  }
-#line 1587 "y.tab.c" /* yacc.c:1646  */
+#line 1590 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 179 "gs_parser.y" /* yacc.c:1646  */
+#line 182 "gs_parser.y" /* yacc.c:1646  */
     {
    // printf("Executing \"%s\"\n", $1);
    // printf ("current_var %s\n", current_var);
    UniqueQueueVarListItem (pvarlist, current_var, (yyvsp[0].dval)); }
-#line 1596 "y.tab.c" /* yacc.c:1646  */
+#line 1599 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 185 "gs_parser.y" /* yacc.c:1646  */
+#line 188 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bAutocycles = (yyvsp[0].dval);
    else yyerror("autocycles should be 0 or 1"); }
-#line 1604 "y.tab.c" /* yacc.c:1646  */
+#line 1607 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 189 "gs_parser.y" /* yacc.c:1646  */
+#line 192 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bBN = (yyvsp[0].dval);
    else yyerror("bBN should be 0 or 1"); }
-#line 1612 "y.tab.c" /* yacc.c:1646  */
+#line 1615 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 193 "gs_parser.y" /* yacc.c:1646  */
+#line 196 "gs_parser.y" /* yacc.c:1646  */
     { bConvergence_std = 1; }
-#line 1618 "y.tab.c" /* yacc.c:1646  */
+#line 1621 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 195 "gs_parser.y" /* yacc.c:1646  */
+#line 198 "gs_parser.y" /* yacc.c:1646  */
     { bConvergence_std = 2; }
-#line 1624 "y.tab.c" /* yacc.c:1646  */
+#line 1627 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 197 "gs_parser.y" /* yacc.c:1646  */
+#line 200 "gs_parser.y" /* yacc.c:1646  */
     { bConvergence_inc = 1; }
-#line 1630 "y.tab.c" /* yacc.c:1646  */
+#line 1633 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 199 "gs_parser.y" /* yacc.c:1646  */
+#line 202 "gs_parser.y" /* yacc.c:1646  */
     { nConvergence_start = (yyvsp[0].dval); }
-#line 1636 "y.tab.c" /* yacc.c:1646  */
+#line 1639 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 201 "gs_parser.y" /* yacc.c:1646  */
+#line 204 "gs_parser.y" /* yacc.c:1646  */
     { nConvergence_end   = (yyvsp[0].dval); }
-#line 1642 "y.tab.c" /* yacc.c:1646  */
+#line 1645 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 203 "gs_parser.y" /* yacc.c:1646  */
+#line 206 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bDBN = (yyvsp[0].dval);
    else yyerror("bDBN should be 0 or 1"); }
-#line 1650 "y.tab.c" /* yacc.c:1646  */
+#line 1653 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 207 "gs_parser.y" /* yacc.c:1646  */
+#line 210 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bHypergraph = (yyvsp[0].dval);
    else yyerror("hypergraph should be 0 or 1"); }
-#line 1658 "y.tab.c" /* yacc.c:1646  */
+#line 1661 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 211 "gs_parser.y" /* yacc.c:1646  */
+#line 214 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bsave_the_chain = (yyvsp[0].dval);
    else yyerror("bsave_the_chain should be 0 or 1"); }
-#line 1666 "y.tab.c" /* yacc.c:1646  */
+#line 1669 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 215 "gs_parser.y" /* yacc.c:1646  */
+#line 218 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bsave_best_graph = (yyvsp[0].dval);
    else yyerror("bsave_best_graph should be 0 or 1"); }
-#line 1674 "y.tab.c" /* yacc.c:1646  */
+#line 1677 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 219 "gs_parser.y" /* yacc.c:1646  */
+#line 222 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bsave_the_edge_probabilities = (yyvsp[0].dval);
    else yyerror("bsave_the_edge_probabilities should be 0 or 1"); }
-#line 1682 "y.tab.c" /* yacc.c:1646  */
+#line 1685 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 223 "gs_parser.y" /* yacc.c:1646  */
+#line 226 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bsave_the_degree_counts = (yyvsp[0].dval);
    else yyerror("bsave_the_degree_counts should be 0 or 1"); }
-#line 1690 "y.tab.c" /* yacc.c:1646  */
+#line 1693 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 227 "gs_parser.y" /* yacc.c:1646  */
+#line 230 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bsave_the_motifs_probabilities = (yyvsp[0].dval);
    else yyerror("bsave_the_motifs_probabilities should be 0 or 1"); }
-#line 1698 "y.tab.c" /* yacc.c:1646  */
+#line 1701 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 231 "gs_parser.y" /* yacc.c:1646  */
+#line 234 "gs_parser.y" /* yacc.c:1646  */
     { bDirichlet = 1; }
-#line 1704 "y.tab.c" /* yacc.c:1646  */
+#line 1707 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 233 "gs_parser.y" /* yacc.c:1646  */
+#line 236 "gs_parser.y" /* yacc.c:1646  */
     { bConstantGamma = 1; }
-#line 1710 "y.tab.c" /* yacc.c:1646  */
+#line 1713 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 235 "gs_parser.y" /* yacc.c:1646  */
+#line 238 "gs_parser.y" /* yacc.c:1646  */
     { bNormalGamma = 1; }
-#line 1716 "y.tab.c" /* yacc.c:1646  */
+#line 1719 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 237 "gs_parser.y" /* yacc.c:1646  */
+#line 240 "gs_parser.y" /* yacc.c:1646  */
     { bZellner = 1; }
-#line 1722 "y.tab.c" /* yacc.c:1646  */
+#line 1725 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 239 "gs_parser.y" /* yacc.c:1646  */
+#line 242 "gs_parser.y" /* yacc.c:1646  */
     {
    printf ("Deprecated syntax, you should use likelihood = <KEYWORD>.\n");
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bDirichlet = (yyvsp[0].dval);
    else yyerror("bDirichlet should be 0 or 1"); }
-#line 1731 "y.tab.c" /* yacc.c:1646  */
+#line 1734 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 244 "gs_parser.y" /* yacc.c:1646  */
+#line 247 "gs_parser.y" /* yacc.c:1646  */
     {
    printf ("Deprecated syntax, you should use likelihood = <KEYWORD>.\n");
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bNormalGamma = (yyvsp[0].dval);
    else yyerror("normal_gamma_score should be 0 or 1"); }
-#line 1740 "y.tab.c" /* yacc.c:1646  */
+#line 1743 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 249 "gs_parser.y" /* yacc.c:1646  */
+#line 252 "gs_parser.y" /* yacc.c:1646  */
     {
    printf ("Deprecated syntax, you should use likelihood = <KEYWORD>.\n");
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bZellner = (yyvsp[0].dval);
    else yyerror("bZellner should be 0 or 1"); }
-#line 1749 "y.tab.c" /* yacc.c:1646  */
+#line 1752 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 254 "gs_parser.y" /* yacc.c:1646  */
+#line 257 "gs_parser.y" /* yacc.c:1646  */
     { alpha_normal_gamma = (yyvsp[0].dval); }
-#line 1755 "y.tab.c" /* yacc.c:1646  */
+#line 1758 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 255 "gs_parser.y" /* yacc.c:1646  */
+#line 258 "gs_parser.y" /* yacc.c:1646  */
     {  beta_normal_gamma = (yyvsp[0].dval); }
-#line 1761 "y.tab.c" /* yacc.c:1646  */
+#line 1764 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 257 "gs_parser.y" /* yacc.c:1646  */
+#line 260 "gs_parser.y" /* yacc.c:1646  */
     { gamma_zellner = (yyvsp[0].dval); }
-#line 1767 "y.tab.c" /* yacc.c:1646  */
+#line 1770 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 259 "gs_parser.y" /* yacc.c:1646  */
+#line 262 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) < 0) || (((yyvsp[0].dval) - (int)(yyvsp[0].dval)) != 0)) {
      yyerror("extra_df_wishart should be a positive or null integer");
    }
    else
      extra_df_wishart = (yyvsp[0].dval); }
-#line 1778 "y.tab.c" /* yacc.c:1646  */
+#line 1781 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 266 "gs_parser.y" /* yacc.c:1646  */
+#line 269 "gs_parser.y" /* yacc.c:1646  */
     {
    if ((yyvsp[0].dval) < 0) {
      yyerror("scale_wishart_diagonal should be positive");
    }
    else
      scale_wishart_diag = (yyvsp[0].dval); }
-#line 1789 "y.tab.c" /* yacc.c:1646  */
+#line 1792 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 273 "gs_parser.y" /* yacc.c:1646  */
+#line 276 "gs_parser.y" /* yacc.c:1646  */
     {
    if ((yyvsp[0].dval) < 0) {
      yyerror("scale_wishart_offdiagonal should be positive");
    }
    else
      scale_wishart_offdiag = (yyvsp[0].dval); }
-#line 1800 "y.tab.c" /* yacc.c:1646  */
+#line 1803 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 280 "gs_parser.y" /* yacc.c:1646  */
+#line 283 "gs_parser.y" /* yacc.c:1646  */
     {
    if ((yyvsp[0].dval) < 0) {
      yyerror("maximum_scc_size should be positive");
    }
    else
      maximum_scc_size = (yyvsp[0].dval); }
-#line 1811 "y.tab.c" /* yacc.c:1646  */
+#line 1814 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 287 "gs_parser.y" /* yacc.c:1646  */
+#line 290 "gs_parser.y" /* yacc.c:1646  */
     { n_saved_adjacency = (yyvsp[0].dval); }
-#line 1817 "y.tab.c" /* yacc.c:1646  */
+#line 1820 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 289 "gs_parser.y" /* yacc.c:1646  */
+#line 292 "gs_parser.y" /* yacc.c:1646  */
     {
    if ((yyvsp[0].dval) > LONG_MAX) {
      fprintf(stderr, "Error: nRuns requested > %lu - Exiting.\n\n", ULONG_MAX);
@@ -1829,126 +1832,126 @@ yyreduce:
      else
        nRuns = (unsigned long) (yyvsp[0].dval);
    } }
-#line 1833 "y.tab.c" /* yacc.c:1646  */
+#line 1836 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 301 "gs_parser.y" /* yacc.c:1646  */
+#line 304 "gs_parser.y" /* yacc.c:1646  */
     { nBurnin           = (yyvsp[0].dval); }
-#line 1839 "y.tab.c" /* yacc.c:1646  */
+#line 1842 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 303 "gs_parser.y" /* yacc.c:1646  */
+#line 306 "gs_parser.y" /* yacc.c:1646  */
     { seed              = (yyvsp[0].dval); }
-#line 1845 "y.tab.c" /* yacc.c:1646  */
+#line 1848 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 305 "gs_parser.y" /* yacc.c:1646  */
+#line 308 "gs_parser.y" /* yacc.c:1646  */
     { rdm_gen_name = taus2; }
-#line 1851 "y.tab.c" /* yacc.c:1646  */
+#line 1854 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 307 "gs_parser.y" /* yacc.c:1646  */
+#line 310 "gs_parser.y" /* yacc.c:1646  */
     { rdm_gen_name = mt19937; }
-#line 1857 "y.tab.c" /* yacc.c:1646  */
+#line 1860 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 309 "gs_parser.y" /* yacc.c:1646  */
+#line 312 "gs_parser.y" /* yacc.c:1646  */
     {
-   //if (nNodes)  {yyerror("n_nodes cannot be reassigned"); }
+   if (nNodes)  {yyerror("n_nodes cannot be reassigned"); }
    if ((yyvsp[0].dval) == 0) {yyerror("n_nodes cannot be zero");       }
-   nNodes            = (yyvsp[0].dval); }
-#line 1866 "y.tab.c" /* yacc.c:1646  */
+   nNodes = (yyvsp[0].dval); }
+#line 1869 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 314 "gs_parser.y" /* yacc.c:1646  */
+#line 317 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bPriorConcordance = (yyvsp[0].dval);
    else yyerror("bPriorConcordance should be 0 or 1"); }
-#line 1874 "y.tab.c" /* yacc.c:1646  */
+#line 1877 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 318 "gs_parser.y" /* yacc.c:1646  */
+#line 321 "gs_parser.y" /* yacc.c:1646  */
     { lambda_concord = (yyvsp[0].dval); }
-#line 1880 "y.tab.c" /* yacc.c:1646  */
+#line 1883 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 320 "gs_parser.y" /* yacc.c:1646  */
+#line 323 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bPriorDegreeNode = (yyvsp[0].dval);
    else yyerror("bPriorDegreeNode should be 0 or 1"); }
-#line 1888 "y.tab.c" /* yacc.c:1646  */
+#line 1891 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 324 "gs_parser.y" /* yacc.c:1646  */
+#line 327 "gs_parser.y" /* yacc.c:1646  */
     {
    bPriorEdgeCount = TRUE;
    expected_n_edges = (yyvsp[0].dval); }
-#line 1896 "y.tab.c" /* yacc.c:1646  */
+#line 1899 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 328 "gs_parser.y" /* yacc.c:1646  */
+#line 331 "gs_parser.y" /* yacc.c:1646  */
     { gamma_degree = (yyvsp[0].dval); }
-#line 1902 "y.tab.c" /* yacc.c:1646  */
+#line 1905 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 330 "gs_parser.y" /* yacc.c:1646  */
+#line 333 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bPriorMotif = (yyvsp[0].dval);
    else yyerror("bPriorMotif should be 0 or 1"); }
-#line 1910 "y.tab.c" /* yacc.c:1646  */
+#line 1913 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 334 "gs_parser.y" /* yacc.c:1646  */
+#line 337 "gs_parser.y" /* yacc.c:1646  */
     { alpha_motif = (yyvsp[0].dval); }
-#line 1916 "y.tab.c" /* yacc.c:1646  */
+#line 1919 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 335 "gs_parser.y" /* yacc.c:1646  */
+#line 338 "gs_parser.y" /* yacc.c:1646  */
     { beta_motif  = (yyvsp[0].dval); }
-#line 1922 "y.tab.c" /* yacc.c:1646  */
+#line 1925 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 337 "gs_parser.y" /* yacc.c:1646  */
+#line 340 "gs_parser.y" /* yacc.c:1646  */
     {
    if (((yyvsp[0].dval) == 0) || ((yyvsp[0].dval) == 1)) bPriorSCC = (yyvsp[0].dval);
    else yyerror("bPriorSCC should be 0 or 1"); }
-#line 1930 "y.tab.c" /* yacc.c:1646  */
+#line 1933 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 341 "gs_parser.y" /* yacc.c:1646  */
+#line 344 "gs_parser.y" /* yacc.c:1646  */
     { gamma_scc  = (yyvsp[0].dval); }
-#line 1936 "y.tab.c" /* yacc.c:1646  */
+#line 1939 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 342 "gs_parser.y" /* yacc.c:1646  */
+#line 345 "gs_parser.y" /* yacc.c:1646  */
     { lambda_scc = (yyvsp[0].dval); }
-#line 1942 "y.tab.c" /* yacc.c:1646  */
+#line 1945 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 344 "gs_parser.y" /* yacc.c:1646  */
+#line 347 "gs_parser.y" /* yacc.c:1646  */
     { nData = (yyvsp[0].dval); }
-#line 1948 "y.tab.c" /* yacc.c:1646  */
+#line 1951 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 348 "gs_parser.y" /* yacc.c:1646  */
+#line 351 "gs_parser.y" /* yacc.c:1646  */
     {
   // printf("Reach end of input file.\n\n");
   /* check that each defined variable is used */
@@ -1957,11 +1960,11 @@ yyreduce:
   //    lexerr("some user-defined variables are not used");
   return (0);
  }
-#line 1961 "y.tab.c" /* yacc.c:1646  */
+#line 1964 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 360 "gs_parser.y" /* yacc.c:1646  */
+#line 363 "gs_parser.y" /* yacc.c:1646  */
     {
 
    if (!nNodes)
@@ -1986,11 +1989,11 @@ yyreduce:
    }
    FreedList(&plist);
  }
-#line 1990 "y.tab.c" /* yacc.c:1646  */
+#line 1993 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 385 "gs_parser.y" /* yacc.c:1646  */
+#line 388 "gs_parser.y" /* yacc.c:1646  */
     { /* empty graph */
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2004,11 +2007,11 @@ yyreduce:
      for (j = 0; j < nNodes; j++)
        current_adj[i][j] = 0;
  }
-#line 2008 "y.tab.c" /* yacc.c:1646  */
+#line 2011 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 399 "gs_parser.y" /* yacc.c:1646  */
+#line 402 "gs_parser.y" /* yacc.c:1646  */
     { /* full graph */
    if (!nNodes)
      yyerror("n_nodes must be set before defining matrices");
@@ -2027,11 +2030,11 @@ yyreduce:
      }
    }
  }
-#line 2031 "y.tab.c" /* yacc.c:1646  */
+#line 2034 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 418 "gs_parser.y" /* yacc.c:1646  */
+#line 421 "gs_parser.y" /* yacc.c:1646  */
     {
    /* random graph */
    if (!nNodes)
@@ -2055,11 +2058,11 @@ yyreduce:
      }
    }
  }
-#line 2059 "y.tab.c" /* yacc.c:1646  */
+#line 2062 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 442 "gs_parser.y" /* yacc.c:1646  */
+#line 445 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2083,11 +2086,11 @@ yyreduce:
    }
    FreedList(&plist);
  }
-#line 2087 "y.tab.c" /* yacc.c:1646  */
+#line 2090 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 466 "gs_parser.y" /* yacc.c:1646  */
+#line 469 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2111,11 +2114,11 @@ yyreduce:
    }
    FreedList(&plist);
  }
-#line 2115 "y.tab.c" /* yacc.c:1646  */
+#line 2118 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 490 "gs_parser.y" /* yacc.c:1646  */
+#line 493 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2127,11 +2130,11 @@ yyreduce:
       will be initialized in InitArrays */
 
  }
-#line 2131 "y.tab.c" /* yacc.c:1646  */
+#line 2134 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 502 "gs_parser.y" /* yacc.c:1646  */
+#line 505 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2141,13 +2144,13 @@ yyreduce:
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $3;
+   scale_pB = (yyvsp[-5].dval);
  }
-#line 2147 "y.tab.c" /* yacc.c:1646  */
+#line 2150 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 514 "gs_parser.y" /* yacc.c:1646  */
+#line 517 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2157,13 +2160,13 @@ yyreduce:
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $8;
+   scale_pB = (yyvsp[0].dval);
  }
-#line 2163 "y.tab.c" /* yacc.c:1646  */
+#line 2166 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 526 "gs_parser.y" /* yacc.c:1646  */
+#line 529 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2173,13 +2176,13 @@ yyreduce:
 
    /* init scale_pB and do nothing else because equanimous is the default and
       will be initialized in InitArrays */
-   //scale_pB = $3 * $10;
+   scale_pB = (yyvsp[-7].dval) * (yyvsp[0].dval);
  }
-#line 2179 "y.tab.c" /* yacc.c:1646  */
+#line 2182 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 538 "gs_parser.y" /* yacc.c:1646  */
+#line 541 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
     yyerror("n_nodes must be set before defining matrices");
@@ -2207,40 +2210,83 @@ yyreduce:
    }
    fclose(priorfile);
  }
-#line 2211 "y.tab.c" /* yacc.c:1646  */
+#line 2214 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 566 "gs_parser.y" /* yacc.c:1646  */
+#line 569 "gs_parser.y" /* yacc.c:1646  */
     {
    if (!nNodes)
-    yyerror("n_nodes must be set before defining matrices");
+     yyerror("n_nodes must be set before defining matrices");
 
    if (!nData)
-    yyerror("n_data must be set before defining data values");
+     yyerror("n_data must be set before defining data values");
 
    if (plist->lSize != (nNodes * nData)) /* problem */
-    yyerror("Data should have n_nodes * n_data elements");
+     yyerror("Data should have n_nodes * n_data elements");
 
-   if (!pData)
-    pData = InitdMatrix(nNodes, nData);
+   if (!pData) {
+     /* init global data array */
+     pData = InitdMatrix(nNodes, nData);
+     /* init a global list of the missing data coordinates */
+     plistMissing = InitijList();
+     /* init missing data indicator array (a flag per node) */
+     bHasMissing = InitiVector(nNodes);
+   }
    else
-    yyerror("Data redefinition is not allowed");
+     yyerror("Data redefinition is not allowed");
+
+   if (bNAData)
+     printf("Missing data will be imputed.\n\n");
 
    ple = plist->Head;
+   pleindic = plistindic->Head;
    for (i = 0; i < nNodes; i++) {
+     count = average = 0; /* reset */
      for (j = 0; j < nData; j++) {
-       pData[i][j] = ple->dVal;
+       if (pleindic->iVal == 1) { /* data is missing */
+         QueueijListItem(plistMissing, i, j); /* store location in queue */
+         bHasMissing[i] = TRUE;
+       }
+       else {
+         pData[i][j] = ple->dVal;
+         average = average + pData[i][j]; /* cumulate */
+         count += 1;
+       }
        ple = ple->next;
-     }
-   }
+       pleindic = pleindic->next;
+     } /* for j data */
+
+     /* avoid useless work */
+     if (bHasMissing[i] == TRUE) {
+       /* compute the actual average on non-missing data for node i */
+       if (count == 0) {
+         printf("Warning: node %d has all data missing.\n", i+1);
+         average = 0; /* arbitrary */
+       }
+       else {
+         average = average / count;
+       }
+
+       /* impute average */
+       PLISTELEMIJ pleIter = plistMissing->Head;
+       while (pleIter) {
+         if (pleIter->iVal == i)
+           pData[i][pleIter->jVal] = average;
+         pleIter = pleIter->next;
+       }
+     } /* if bHasMissing */
+   } /* for ith node */
+
    FreedList(&plist);
+   FreeiList(&plistindic);
+   
  }
-#line 2240 "y.tab.c" /* yacc.c:1646  */
+#line 2286 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 591 "gs_parser.y" /* yacc.c:1646  */
+#line 637 "gs_parser.y" /* yacc.c:1646  */
     {
 
    if (!nNodes)
@@ -2249,10 +2295,16 @@ yyreduce:
    if (!nData)
     yyerror("n_data must be set before defining data values");
 
-   if (!pData)
-    pData = InitdMatrix(nNodes, nData);
+   if (!pData) {
+     /* init global data array */
+     pData = InitdMatrix(nNodes, nData);
+     /* init a global list of the missing data coordinates */
+     plistMissing = InitijList();
+     /* init missing data indicator array (a flag per node) */
+     bHasMissing = InitiVector(nNodes);
+   }
    else
-    yyerror("Data redefinition is not allowed");
+     yyerror("Data redefinition is not allowed");
 
    pstrle = pstrlist->Head;
    FILE *datafile;
@@ -2260,29 +2312,62 @@ yyreduce:
    if (!datafile)
      yyerror("data file could not be opened");
 
+   char sztmp[4];
    for (i = 0; i < nNodes; i++) {
+     count = average = 0; /* reset */
      for (j = 0; j < nData; j++) {
        if (fscanf(datafile, "%lg", &(pData[i][j])) < 1) {
          yyerror("cannot read all data required");
        }
-       else {
-         if (isnan(pData[i][j]))
+       else { /* data read in OK */
+         /* hack to check for nan */
+         snprintf(sztmp, 4, "%g", pData[i][j]);
+         if (!strcmp(sztmp, "nan")) { /* data is missing */
+           if (!bNAData)
+             printf("Missing data will be imputed.\n\n");           
            bNAData = TRUE;
+           QueueijListItem(plistMissing, i, j); /* store location in queue */
+           bHasMissing[i] = TRUE;
+         }
+         else {
+           average = average + pData[i][j]; /* cumulate */
+           count += 1;
+         }
        }
-     }
-   }
+     } /* for j data */
 
+     /* avoid useless work */
+     if (bHasMissing[i] == TRUE) {
+       /* compute the actual average on non-missing data for node i */
+       if (count == 0) {
+         printf("Warning: node %d has all data missing.\n", i+1);
+         average = 0; /* arbitrary */
+       }
+       else {
+         average = average / count;
+       }
+
+       /* impute average */
+       PLISTELEMIJ pleIter = plistMissing->Head;
+       while (pleIter) {
+         if (pleIter->iVal == i)
+           pData[i][pleIter->jVal] = average;
+         pleIter = pleIter->next;
+       }
+     } /* if bHasMissing */
+   } /* for ith node */
+ 
    fclose(datafile);
 
  }
-#line 2279 "y.tab.c" /* yacc.c:1646  */
+#line 2364 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 629 "gs_parser.y" /* yacc.c:1646  */
+#line 714 "gs_parser.y" /* yacc.c:1646  */
     {
 
-   nChains = pstrlist->lSize; // printf("nChains = %d\n", nChains);
+   nChains = pstrlist->lSize; // printf("nChains = %d\n", nChains); 
 
    if (nChains == 0)
      yyerror("empty file list");
@@ -2307,11 +2392,11 @@ yyreduce:
    }
    FreeStrList(&pstrlist);
  }
-#line 2311 "y.tab.c" /* yacc.c:1646  */
+#line 2396 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 657 "gs_parser.y" /* yacc.c:1646  */
+#line 742 "gs_parser.y" /* yacc.c:1646  */
     {
 
    if (!nNodes)
@@ -2334,11 +2419,11 @@ yyreduce:
    }
    FreedList(&plist);
  }
-#line 2338 "y.tab.c" /* yacc.c:1646  */
+#line 2423 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 680 "gs_parser.y" /* yacc.c:1646  */
+#line 765 "gs_parser.y" /* yacc.c:1646  */
     {
 
    bTempered = TRUE;
@@ -2362,179 +2447,185 @@ yyreduce:
    }
    FreedList(&plist);
  }
-#line 2366 "y.tab.c" /* yacc.c:1646  */
+#line 2451 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 706 "gs_parser.y" /* yacc.c:1646  */
+#line 791 "gs_parser.y" /* yacc.c:1646  */
     {
    plist = InitdList();
    QueuedListItem (plist, (yyvsp[0].dval));
  }
-#line 2375 "y.tab.c" /* yacc.c:1646  */
+#line 2460 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 710 "gs_parser.y" /* yacc.c:1646  */
+#line 795 "gs_parser.y" /* yacc.c:1646  */
     {
    QueuedListItem (plist, (yyvsp[0].dval));
  }
-#line 2383 "y.tab.c" /* yacc.c:1646  */
+#line 2468 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 713 "gs_parser.y" /* yacc.c:1646  */
+#line 798 "gs_parser.y" /* yacc.c:1646  */
     { yyerror("empty list"); }
-#line 2389 "y.tab.c" /* yacc.c:1646  */
+#line 2474 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 717 "gs_parser.y" /* yacc.c:1646  */
+#line 802 "gs_parser.y" /* yacc.c:1646  */
     {
    plist = InitdList();
    QueuedListItem (plist, (yyvsp[0].dval));
+   plistindic = InitiList();
+   QueueiListItem (plistindic, 0); /* normal number */
  }
-#line 2398 "y.tab.c" /* yacc.c:1646  */
+#line 2485 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 721 "gs_parser.y" /* yacc.c:1646  */
+#line 808 "gs_parser.y" /* yacc.c:1646  */
     {
    plist = InitdList();
-   QueuedListItem (plist, nan("")); /* C99 IEEE floating point standard */
+   QueuedListItem (plist, 0);      /* arbitrary zero, will be imputed */
+   plistindic = InitiList();
+   QueueiListItem (plistindic, 1); /* flag missing data */
    bNAData = TRUE;
  }
-#line 2408 "y.tab.c" /* yacc.c:1646  */
+#line 2497 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 726 "gs_parser.y" /* yacc.c:1646  */
+#line 815 "gs_parser.y" /* yacc.c:1646  */
     {
    QueuedListItem (plist, (yyvsp[0].dval));
+   QueueiListItem (plistindic, 0); /* normal number */
  }
-#line 2416 "y.tab.c" /* yacc.c:1646  */
+#line 2506 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 729 "gs_parser.y" /* yacc.c:1646  */
+#line 819 "gs_parser.y" /* yacc.c:1646  */
     {
-   QueuedListItem (plist, nan("")); /* C99 IEEE floating point standard */
+   QueuedListItem (plist, 0);      /* arbitrary zero, will be imputed */
+   QueueiListItem (plistindic, 1); /* flag missing data */
    bNAData = TRUE;
  }
-#line 2425 "y.tab.c" /* yacc.c:1646  */
+#line 2516 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 733 "gs_parser.y" /* yacc.c:1646  */
+#line 824 "gs_parser.y" /* yacc.c:1646  */
     { yyerror("empty list"); }
-#line 2431 "y.tab.c" /* yacc.c:1646  */
+#line 2522 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 737 "gs_parser.y" /* yacc.c:1646  */
+#line 828 "gs_parser.y" /* yacc.c:1646  */
     {
    pstrlist = InitStrList();
    QueueStrListItem (pstrlist, (yyvsp[0].pchar));
  }
-#line 2440 "y.tab.c" /* yacc.c:1646  */
+#line 2531 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 741 "gs_parser.y" /* yacc.c:1646  */
+#line 832 "gs_parser.y" /* yacc.c:1646  */
     { yyerror("empty list"); }
-#line 2446 "y.tab.c" /* yacc.c:1646  */
+#line 2537 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 745 "gs_parser.y" /* yacc.c:1646  */
+#line 836 "gs_parser.y" /* yacc.c:1646  */
     {
    pstrlist = InitStrList();
    QueueStrListItem (pstrlist, (yyvsp[0].pchar));
  }
-#line 2455 "y.tab.c" /* yacc.c:1646  */
+#line 2546 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 749 "gs_parser.y" /* yacc.c:1646  */
+#line 840 "gs_parser.y" /* yacc.c:1646  */
     {
    QueueStrListItem (pstrlist, (yyvsp[0].pchar));
  }
-#line 2463 "y.tab.c" /* yacc.c:1646  */
+#line 2554 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 752 "gs_parser.y" /* yacc.c:1646  */
+#line 843 "gs_parser.y" /* yacc.c:1646  */
     { yyerror("empty list"); }
-#line 2469 "y.tab.c" /* yacc.c:1646  */
+#line 2560 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 756 "gs_parser.y" /* yacc.c:1646  */
+#line 847 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (int)  (yyvsp[0].ival); }
-#line 2475 "y.tab.c" /* yacc.c:1646  */
+#line 2566 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 757 "gs_parser.y" /* yacc.c:1646  */
+#line 848 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (long) (yyvsp[0].lval); }
-#line 2481 "y.tab.c" /* yacc.c:1646  */
+#line 2572 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 758 "gs_parser.y" /* yacc.c:1646  */
+#line 849 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (yyvsp[0].dval); }
-#line 2487 "y.tab.c" /* yacc.c:1646  */
+#line 2578 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 759 "gs_parser.y" /* yacc.c:1646  */
+#line 850 "gs_parser.y" /* yacc.c:1646  */
     {
    // printf("$1: %s\n", $1);
    if (!LookupVarList (pvarlist, (yyvsp[0].pchar), &((yyval.dval))))
      yyerror("undefined variable found");
    }
-#line 2497 "y.tab.c" /* yacc.c:1646  */
+#line 2588 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 764 "gs_parser.y" /* yacc.c:1646  */
+#line 855 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (yyvsp[-2].dval) + (yyvsp[0].dval); }
-#line 2503 "y.tab.c" /* yacc.c:1646  */
+#line 2594 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 765 "gs_parser.y" /* yacc.c:1646  */
+#line 856 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (yyvsp[-2].dval) - (yyvsp[0].dval); }
-#line 2509 "y.tab.c" /* yacc.c:1646  */
+#line 2600 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 766 "gs_parser.y" /* yacc.c:1646  */
+#line 857 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (yyvsp[-2].dval) * (yyvsp[0].dval); }
-#line 2515 "y.tab.c" /* yacc.c:1646  */
+#line 2606 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 767 "gs_parser.y" /* yacc.c:1646  */
+#line 858 "gs_parser.y" /* yacc.c:1646  */
     { if ((yyvsp[0].dval) == 0) { yyerror("division by zero"); }
                    else (yyval.dval) = (yyvsp[-2].dval) / (double) (yyvsp[0].dval); }
-#line 2522 "y.tab.c" /* yacc.c:1646  */
+#line 2613 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 95:
-#line 769 "gs_parser.y" /* yacc.c:1646  */
+#line 860 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = -(yyvsp[0].dval); }
-#line 2528 "y.tab.c" /* yacc.c:1646  */
+#line 2619 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 770 "gs_parser.y" /* yacc.c:1646  */
+#line 861 "gs_parser.y" /* yacc.c:1646  */
     { (yyval.dval) = (yyvsp[-1].dval); }
-#line 2534 "y.tab.c" /* yacc.c:1646  */
+#line 2625 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2538 "y.tab.c" /* yacc.c:1646  */
+#line 2629 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2762,7 +2853,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 775 "gs_parser.y" /* yacc.c:1906  */
+#line 866 "gs_parser.y" /* yacc.c:1906  */
 
 
 void lexerr(const char *message)

@@ -58,14 +58,12 @@ double LnGamma (double x);
 double LnMultivariateT (double *x, int dim,
                         double **lambda, int df);
 double LnPoisson (int n, double lambda);
-double LnRatio (double **x, double **vc, int dim,
-		            int n_loop, int np, int hyp,
-                double diag, double offdiag, int nNodes);
+double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
+                int q, double diag, double offdiag, int nNodes);
 double LnT (double x, double mu, double lambda, int df);
 double Randoms (void);
 void   InitRandoms (const int rdm_gen_name, double dSeed);
-
-extern int bInit;
+void   resetRNG();
 
 /* End */
 

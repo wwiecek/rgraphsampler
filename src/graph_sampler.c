@@ -2,7 +2,7 @@
 
    Written by Frederic Bois
 
-   Copyright (c) 2014-2017 Frederic Bois.
+   Copyright (c) 2014-2018 Frederic Bois.
 
    This code is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -80,26 +80,43 @@ void AnnounceProgram (void)
 /* ----------------------------------------------------------------------------
    CleanupMemory
 
-   Releases (some!) pointers.
+   Releases (some!) pointers & resets the variables used by parser into their
+   original state (e.g. RNG indicator).
 */
 void CleanupMemory (void)
 {
-  if (current_degrees)
+
+  //  printf("Attempting memory cleanup\n\n");
+  if (current_degrees){
     free (current_degrees);
-
-  if(component)
+    current_degrees = NULL;
+  }
+  if(component){
     free(component);
-  if(component_size)
+    component = NULL;
+  }
+  if(component_size){
     free(component_size);
+    component_size = NULL;
+  }
 
-  if (current_ll_node)
+  if(proposed_component){
+    free(proposed_component);
+    proposed_component = NULL;
+  }
+  if(proposed_component_size){
+    free(proposed_component_size);
+    proposed_component_size = NULL;
+  }
+
+  if(dag_component) {
+    free(dag_component);
+    dag_component = NULL;
+  }
+
+  if (current_ll_node) {
     free (current_ll_node);
-
-  if (pdWorkMatrixSizeN) {
-    int dim = (nNodes > nData ? nNodes : nData);
-    if (bDBN)
-      dim = dim + 1;
-    FreedMatrix (pdWorkMatrixSizeN, dim);
+    current_ll_node = NULL;
   }
   if(current_adj){
     FreeiMatrix(current_adj, nNodes);
@@ -121,30 +138,97 @@ void CleanupMemory (void)
     free(pDataLevels);
     pDataLevels = NULL;
   }
+  if(bHasMissing) {
+    free(bHasMissing);
+    bHasMissing=NULL;
+  }
   if(mat_sum) {
     FreedMatrix(mat_sum, nNodes);
     mat_sum = NULL;
   }
 
-  //we reset the parsed nNodes, just in case
-  //something extra is run afterwards
-  nNodes = 0;
-  n_at_targetT = 1;
-  bInit = 0; //re-initialise RNG next time we run
-  bNAData = FALSE; //set NAData to its default value of FALSE
+  //calculation helper matrices:
+  int dim = (nNodes > nData ? nNodes : nData);
+  if (bDBN)
+    dim = dim + 1;
+  if(pdWorkMatrixSizeN) {FreedMatrix (pdWorkMatrixSizeN, dim); pdWorkMatrixSizeN = NULL;}
+  if(pdM1) { FreedMatrix(pdM1,dim); pdM1 = NULL;}
+  if(pdM2) { FreedMatrix(pdM2,dim); pdM2 = NULL;}
+  if(pdM3) { FreedMatrix(pdM3,dim); pdM3 = NULL;}
+  if(pdM4) { FreedMatrix(pdM4,dim); pdM4 = NULL;}
+  if(pdM5) { FreedMatrix(pdM5,dim); pdM5 = NULL;}
+  if(pdM6) { FreedMatrix(pdM6,dim); pdM6 = NULL;}
+  if(pdM7) { FreedMatrix(pdM7,dim); pdM7 = NULL;}
+  if(tpd5) { FreedMatrix(tpd5,dim); tpd5 = NULL;}
 
-  //set all Boolean flags to 0:
-  bDBN = 0; bBN = 0;
-  bZellner = 0; bDirichlet = 0; bConstantGamma = 0; bNormalGamma = 0;
-  bHypergraph = 0; bAutocycles = 0;
-  bPriorDegreeNode = 0; bPriorEdgeCount = 0; bPriorMotif = 0;
-  bPriorSCC = 0;
+  if(nParents){
+    free(nParents); nParents = NULL;
+  }
+  if(index_parents){
+    FreeiMatrix(index_parents,nNodes);
+    index_parents=NULL;
+  }
   if(bAllowed_parents){
     free(bAllowed_parents);
     bAllowed_parents = NULL;
   }
-} /* CleanupMemory */
+  if(pInvTemperatures) {
+    free(pInvTemperatures);
+    pInvTemperatures = NULL;
+  }
+  //we reset the parsed nNodes, just in case
+  //something extra is run afterwards
+  nNodes = 0;
 
+  //reset RNG
+  resetRNG();
+
+  //set all Boolean flags to 0:
+  //we should check if this isn't redundant vs parser set-up
+  bData = 0; nData = 0; bNAData = 0;
+  bDBN = 0; bBN = 0; bTempered=0;
+  bZellner = 0; bDirichlet = 0; bConstantGamma = 0; bNormalGamma = 0;
+  bHypergraph = 0; bAutocycles = 0;
+  bPriorDegreeNode = 0; bPriorEdgeCount = 0; bPriorMotif = 0;
+  bPriorSCC = 0; bPriorConcordance = 0;
+  gamma_degree   = 1;
+  n_at_targetT = 1;
+
+  //save settings
+  bsave_the_chain = FALSE;
+  bsave_best_graph               = FALSE;
+  bsave_the_edge_probabilities   = FALSE;
+  bsave_the_degree_counts        = FALSE;
+  bsave_the_motifs_probabilities = FALSE;
+  bsave_some_graphs              = FALSE;
+
+  scale_pB       = 1;
+  lambda_concord = 1;
+  gamma_degree   = 1;
+  alpha_motif    = 1;
+  beta_motif     = 1;
+  lambda_scc     = 1;
+  gamma_scc      = 0;
+
+  gamma_zellner      = 1;
+  alpha_normal_gamma = 1.5;
+  beta_normal_gamma  = 1000;
+
+  extra_df_wishart      = 1;
+  scale_wishart_diag    = 1;
+  scale_wishart_offdiag = 0;
+  maximum_scc_size      = -1; /* will be checked after reading the script */
+
+  bConvergence_std   = 0;
+  bConvergence_inc   = 0;
+  nConvergence_start = 0;
+  nConvergence_end   = 0;
+
+  diff_logprior = 0;
+  diff_loglikelihood = 0;
+  diff_logposterior = 0;
+
+} /* CleanupMemory */
 
 /* ----------------------------------------------------------------------------
    GetCmdLineArgs
@@ -200,9 +284,8 @@ void InitArrays (void)
 {
   int  i, j;
   long N = nNodes * nNodes;
-  register int count;
 
-  // if current_adj is not defined it is initialized here to 0
+  /* if current_adj is not defined it is initialized here to 0 */
   if (!current_adj) {
     current_adj = InitiMatrix(nNodes, nNodes);
     printf ("Setting current_adj to default value (null matrix).\n");
@@ -212,11 +295,11 @@ void InitArrays (void)
         current_adj[i][j] = 0;
   }
 
-  // initialize tempered sampling variables
+  /* initialize tempered sampling variables */
   if (bTempered) {
-    indexT = 0;  // start hot
-    dCZero = 10; // why ?
-    dNZero = 50; // why not ?
+    indexT = 0;  /* start hot */
+    dCZero = 10; /* why ? */
+    dNZero = 50; /* why not ?  */
     plnPi = InitdVector (nTemperatures);
   }
   else {
@@ -224,53 +307,57 @@ void InitArrays (void)
     nTemperatures = 1;
   }
 
-  // initialize space for the best (maximum probability) adjacency matrix
+  /* initialize space for the best (maximum probability) adjacency matrix */
   if (bsave_best_graph) {
     best_adj = InitiMatrix(nNodes, nNodes);
     for (i = 0; i < nNodes; i++)
       memcpy(best_adj[i], current_adj[i], nNodes * sizeof(int));
   }
 
-  /* if hyper_pB is not defined it is initialized here to 0.5 for
+  /* if hyper_pB is not defined it is initialized here to scale_pB * 0.5 for
      all elements (except the diagonal for BNs and similar cases);
      this is the "equanimous" prior */
   if (!hyper_pB) {
     hyper_pB = InitdMatrix(nNodes, nNodes);
 
+    if (scale_pB < 0) {
+        printf ("Error: Bernoulli prior probabilities must be in [0,1]\n"
+                "       scale cannot be negative - Exiting.\n\n");
+        exit(0);
+    }
 
+    if (scale_pB > 2) {
+        printf ("Error: Bernoulli prior probabilities must be in [0,1]\n"
+                "       scale cannot be larger than 2 - Exiting.\n\n");
+        exit(0);
+    }
 
+    if(scale_pB == 1)
+      printf ("Setting hyper_pB to equanimous.\n\n");
+    else
+      printf ("Setting hyper_pB to equanimous with scale %g.\n\n", scale_pB);
 
-
-
-
-
-
-
-
-
-    printf ("Setting hyper_pB to equanimous.\n\n");
-
-
+    scale_pB = scale_pB * 0.5;
     for (i = 0; i < nNodes; i++) {
       for (j = 0; j < nNodes; j++) {
         if ((i == j) && (bBN || (bAutocycles == FALSE) || bHypergraph))
           hyper_pB[i][j] = 0.0;
         else
-          hyper_pB[i][j] = 0.5;
+          hyper_pB[i][j] = scale_pB;
       }
     }
   }
   log_hyper_pB = InitdMatrix(nNodes, nNodes);
   log_hyper_qB = InitdMatrix(nNodes, nNodes);
 
-  for (i = 0; i < nNodes; i++) { // ith line
+  for (i = 0; i < nNodes; i++) { /* ith line */
     for (j = 0; j < nNodes; j++) { // jth column
       log_hyper_pB[i][j] = log(hyper_pB[i][j]);
       log_hyper_qB[i][j] = log(1 - hyper_pB[i][j]);
     }
   }
 
-  // initialize matrix edge_requirements to zero by default
+  /* initialize matrix edge_requirements to zero by default */
   if (bPriorConcordance && !edge_requirements) {
     edge_requirements = InitiMatrix(nNodes, nNodes);
     printf ("Setting edge_requirements to default value (indifference).\n");
@@ -285,9 +372,9 @@ void InitArrays (void)
     }
   }
 
-  // initialize a table of differences between the binomial log
-  // probabilities of the total number of edges when going up
-  // successive edge counts: P(n=x+1) - P(n=x)
+  /* initialize a table of differences between the binomial log
+     probabilities of the total number of edges when going up
+     successive edge counts: P(n=x+1) - P(n=x) */
   if (bPriorEdgeCount == TRUE) {
     double p = expected_n_edges / (double) N;
 
@@ -296,8 +383,7 @@ void InitArrays (void)
       pdiff_binom_P[i] = log( (N-(i+1)+1) / (i+1.0) * p / (1.0-p) );
   }
 
-  // initialize a table of the degree counts and a table for the
-  // cumul of those
+  /* initialize a table of the degree counts and a table for their sum */
   if (bsave_the_degree_counts) {
     degree_count    = InitdVector(nNodes + nNodes);
     cumdegree_count = InitdVector(nNodes + nNodes);
@@ -307,7 +393,7 @@ void InitArrays (void)
     }
   }
 
-  // initialize motifs cumulants
+  /* initialize motifs cumulants */
   if (bsave_the_motifs_probabilities) {
     cum_nEloops = 0;
     cum_nFloops = 0;
@@ -319,14 +405,14 @@ void InitArrays (void)
      nodes for which the likelihood will not be computed */
   if (bBN || bDBN || bHypergraph) {
     bAllowed_parents = InitiVector(nNodes);
-    for (j = 0; j < nNodes; j++) { // for each column (node)
+    for (j = 0; j < nNodes; j++) { /* for each column (node) */
       i = 0;
       while ((i < nNodes) && (hyper_pB[i][j] == 0)) {
         i++;
       }
       bAllowed_parents[j] = (i == nNodes ? FALSE : TRUE);
-    } // end for
-  } // end if
+    } /* end for */
+  } /* end if */
 
   /* initialize a table of parents for each node
      (this is pricy in storage, would be better with a doubly linked
@@ -337,7 +423,7 @@ void InitArrays (void)
   for (j = 0; j < nNodes; j++) {
     nParents[j] = 0;
     for (i = 0; i < nNodes; i++)
-      if (current_adj[i][j]) { // we have a parent, store it
+      if (current_adj[i][j]) { /* we have a parent, store it */
         index_parents[j][nParents[j]] = i;
         nParents[j] += 1;
       }
@@ -360,7 +446,7 @@ void InitArrays (void)
                 "\n\n", j);
         exit(0);
       }
-      else if (bHypergraph && (nParents[j] >= nData)) {
+      else if (bHypergraph && bData && (nParents[j] >= nData)) {
         printf("Error: node %d has more parents than data:\n"
                "       conflict with Constant-Gamma score - Exiting.\n\n", j);
         exit(0);
@@ -376,9 +462,17 @@ void InitArrays (void)
 
   /* initialize an edge summation matrix */
   if (bsave_the_edge_probabilities) {
-    edgeP_thin = (nRuns > N ? N : 1);
+    edgeP_thin = (nRuns > N ? N : 1); /* remember: N is nNodes squared */
     mat_sum = InitdMatrix(nNodes, nNodes);
   }
+
+  component               = InitiVector(nNodes);
+  component_size          = InitiVector(nNodes);
+  proposed_component      = InitiVector(nNodes);
+  proposed_component_size = InitiVector(nNodes);
+  /* get the strongly connected components and their sizes */
+  if (bHypergraph)
+    Tarjan_with_sizes (current_adj, nNodes, component, component_size);
 
   /* initialize data likelihood related stuff */
   if (bData) {
@@ -388,41 +482,66 @@ void InitArrays (void)
 
     /* initialize a working matrix to be used in InvertMatrix for example */
     int dim = (nNodes > nData ? nNodes : nData);
-    if (bBN || bHypergraph)
-      pdWorkMatrixSizeN = InitdMatrix (dim, dim);
-    else // bDBN hopefully
-      pdWorkMatrixSizeN = InitdMatrix (dim + 1, dim + 1);
 
+    if (bBN || bHypergraph){
+      pdWorkMatrixSizeN = InitdMatrix(dim, dim);
+      pdM1 = InitdMatrix(dim, dim);
+      pdM2 = InitdMatrix(dim, dim);
+    if(bHypergraph || bConstantGamma) { /* extra matrices that are only used for SCC cases   */
+                                        /* ConstantGamma treats likelihood as 1-dim SCC case */
+      pdM3 = InitdMatrix(dim, dim);
+      pdM4 = InitdMatrix(dim, dim);
+      pdM5 = InitdMatrix(dim, dim);
+      pdM6 = InitdMatrix(dim, dim);
+      pdM7 = InitdMatrix(dim, dim);
+      tpd5 = InitdMatrix(dim, dim);
+    }
+  } else { /* bDBN hopefully */
+    pdWorkMatrixSizeN = InitdMatrix(dim+1, dim+1);
+    pdM1 = InitdMatrix(dim+1, dim+1);
+    pdM2 = InitdMatrix(dim+1, dim+1);
+  }
+
+  //for DBNs we use nNodes + 1, so
 
     /* setup a blank component list to be used for single nodes */
     dag_component = InitiVector(nNodes);
     for (i = 0; i < nNodes; i++)
       dag_component[i] = i;
 
-    component               = InitiVector(nNodes);
-    component_size          = InitiVector(nNodes);
-    proposed_component      = InitiVector(nNodes);
-    proposed_component_size = InitiVector(nNodes);
     if (bHypergraph) {
-      // get the strongly connected components and their sizes
-      Tarjan_with_sizes (current_adj, nNodes, component, component_size);
-      flag_update_loops = 0;
-      // when multiple likelihoods change we need to store a vector:
+      /* when multiple likelihoods change we need to store a vector: */
       updated_ll_vector = InitdVector (nNodes);
+      /* list of nodes for which likelihood will be updated */
       plistNodesUpdated = NULL;
     }
 
-  } // if bData
+  } /* if bData */
+
+
 
 } /* InitArrays */
 
 
 /* ----------------------------------------------------------------------------
-   Impute
+   InitGlobals
 
-   Impute a node's missing data by MCMC sampling, the importance ratio is
-   computed on the node's Markov blanket.
+   Initialize various global variables.
 */
+void InitGlobals (void)
+{
+  nNodes            = 0;
+  current_adj       = NULL;
+  edge_requirements = NULL;
+  hyper_pB          = NULL;
+  pData             = NULL;
+  bNAData           = FALSE;
+  flag_update_loops = 0;
+
+  iN_to_print       = 1000;
+
+} /* InitGlobals */
+
 
 /* ----------------------------------------------------------------------------
    Impute
@@ -441,13 +560,13 @@ void Impute ()
   static double* pTmp;
 
   if (!pTmp) { /* initialize */
-
     pTmp = InitdVector(nNodes);
-    iPrint_interval = (nRuns > 1000 ? nRuns / 1000 : 1);
+    iPrint_interval = (nRuns > iN_to_print ? nRuns / iN_to_print : 1);
   }
 
   for (tmp_parent = 0; tmp_parent < nNodes; tmp_parent++)
     if (bHasMissing[tmp_parent]) {
+
       /* scan the missing data list, find start of parent's missing data */
       while (ple && (ple->iVal != tmp_parent))
         ple = ple->next;
@@ -467,10 +586,6 @@ void Impute ()
 
       do { /* impute each of "tmp_parent" missing data */
 
-        if (bPrint)
-          fprintf (pImputedFile, "%lu\t%d\t%d\t",
-                   iter, tmp_parent, ple->jVal);
-
         /* sample a new value, remember the difference to undo eventually */
         data_diff = sd * (Randoms() - 0.5); /* should be an adjustable kernel */
         pData[tmp_parent][ple->jVal] += data_diff;
@@ -478,7 +593,6 @@ void Impute ()
         /* likelihood of the tmp_parent's Markov blanket */
         /* for tmp_parent itself: */
         curr_llike = current_ll_node[tmp_parent];
-
 
         if (bBN) {
           if (bZellner)
@@ -492,7 +606,6 @@ void Impute ()
         }
 
         if (bDBN) {
-
           if (bZellner)
             pTmp[tmp_parent] = ZLoglikelihood_node_DBN (tmp_parent, pData);
           else {
@@ -558,12 +671,14 @@ void Impute ()
             fprintf (pImputedFile, "%g\t%g\n",
                      pData[tmp_parent][ple->jVal], curr_llike);
         }
+
         ple = ple->next;
+
       } while (ple && (ple->iVal == tmp_parent));
   } /* end for tmp_parent */
 
-
 } /* Impute */
+
 
 /* ----------------------------------------------------------------------------
    Logprior_diff
@@ -591,7 +706,7 @@ void Logprior_diff (int **adjacency_current, int parent_node, int child_node,
   if (bPriorDegreeNode)
     *logPdiff += Logprior_diff_degree(parent_node, child_node, diff);
 
-  // prior on total edge count
+  /* prior on total edge count */
   if (bPriorEdgeCount)
     *logPdiff += Logprior_diff_edge_number(diff);
 
@@ -638,7 +753,7 @@ double Logprior_diff_bernoulli (int parent_node, int child_node, int diff)
 {
   double logPdiff;
 
-  // prior change under Bernoulli
+  /* prior change under Bernoulli */
   if (diff == 1)
     logPdiff = log_hyper_pB[parent_node][child_node] -
                log_hyper_qB[parent_node][child_node];
@@ -670,49 +785,49 @@ double Logprior_full (int N, int **adjacency)
 {
 
   int i, j, diff;
-  int **budding_adj; // temporary adjacency matrix
+  int **budding_adj; /* temporary adjacency matrix */
 
-  double pr = 0;     // init prior log density
-  double cumLD;      // sum of log degrees
-  double cumPE;      // temporary for probability of initial edge count
+  double pr = 0;     /* init prior log density */
+  double cumLD;      /* sum of log degrees */
+  double cumPE;      /* temporary for probability of initial edge count */
 
-  // Bernoulli prior on edges: always done
+  /* Bernoulli prior on edges: always done */
   for (i = 0; i < N; i++)
     for (j = 0; j < N; j++)
       if (adjacency[i][j] == 1)
-        pr += log_hyper_pB[i][j]; // log(hyper_pB[i][j])
+        pr += log_hyper_pB[i][j]; /* log(hyper_pB[i][j]) */
       else
-        pr += log_hyper_qB[i][j]; // log(1 - hyper_pB[i][j])
+        pr += log_hyper_qB[i][j]; /* log(1 - hyper_pB[i][j]) */
 
-  // concordance prior
+  /* concordance prior */
   if (bPriorConcordance)
     for (i = 0; i < N; i++)
-      for (j = 0; j < N; j++) // count only the disagreements
+      for (j = 0; j < N; j++) /* count only the disagreements */
         if (Logprior_diff_concordance(i, j, (adjacency[i][j] ? 1 : -1)) < 0)
           pr -= lambda_concord;
 
-  // prior on degree distribution
+  /* prior on degree distribution */
   if (bsave_the_degree_counts || bPriorDegreeNode) {
-    // set up the global table for the number of edges for each node
+    /* set up the global table for the number of edges for each node */
     current_degrees = InitiVector(N);
     for (i = 0; i < N; i++) {
       current_degrees[i] = 0;
     }
 
-    // compute the table for the number of edges for each node
+    /* compute the table for the number of edges for each node */
     for (i = 0; i < N; i++) {
-      for (j = 0; j < N; j++) // sum over the ith line
+      for (j = 0; j < N; j++) /* sum over the ith line */
         current_degrees[i] += adjacency[i][j];
 
-      for (j = 0; j < N; j++) // sum over the ith column
-        if (j != i) // do not count the node itself twice
+      for (j = 0; j < N; j++) /* sum over the ith column */
+        if (j != i) /* do not count the node itself twice */
           current_degrees[i] += adjacency[j][i];
     }
   } /* end bsave_the_degree */
 
   if (bPriorDegreeNode) {
     /* get the log-density of the current degrees under a power law */
-    cumLD = 0; // cumulate the log degrees
+    cumLD = 0; /* cumulate the log degrees */
     for (i = 0; i < N; i++) {
       if (current_degrees[i] > 1)
         cumLD += log(current_degrees[i]);
@@ -720,19 +835,19 @@ double Logprior_full (int N, int **adjacency)
     pr += -gamma_degree * cumLD;
   }
 
-  // this is always done:
+  /* this is always done: */
   current_edge_count = 0;
 
-  // prior on total edge count
+  /* prior on total edge count */
   if (bPriorEdgeCount) {
-    // initialize also the current edge count using nParents
-    // start with P(n=0)
+    /* initialize also the current edge count using nParents */
+    /* start with P(n=0) */
     double p = expected_n_edges / (double) (nNodes * nNodes);
     cumPE = nNodes * nNodes * log(1 - p);
   }
 
-  // part of the loop is always done to keep track of the number of edges
-  // could be conditional on a flag
+  /* part of the loop is always done to keep track of the number of edges */
+  /* could be conditional on a flag */
   for (i = 0; i < nNodes; i++) {
     for (j = 0; j < nParents[i]; j++) {
       if (bPriorEdgeCount)
@@ -744,7 +859,7 @@ double Logprior_full (int N, int **adjacency)
   if (bPriorEdgeCount)
     pr += cumPE;
 
-  // now for motifs
+  /* now for motifs */
   if (bsave_the_motifs_probabilities || bPriorMotif) {
     /* counters for the two loop types; global initialize !
        E loops are A->B->C->A
@@ -758,7 +873,7 @@ double Logprior_full (int N, int **adjacency)
     /* to count the loops we simply reconstruct the adjacency matrix given
        (starting from an empty matrix) and count the loops as they are
        being formed */
-    budding_adj = InitiMatrix(N, N); // start empty
+    budding_adj = InitiMatrix(N, N); /* start empty */
     for (i = 0; i < N; i++)
       for (j = 0; j < N; j++)
         budding_adj[i][j] = 0;
@@ -767,9 +882,9 @@ double Logprior_full (int N, int **adjacency)
 
     diff = 1; /* be explicit: we are only looking at nodes linked to
                  each other */
-    for (i = 0; i < N; i++) { // for each node
-      for (j = 0; j < N; j++) { // for each potential child
-        if (adjacency[i][j] == 1) { // skip the zeros...
+    for (i = 0; i < N; i++) { /* for each node */
+      for (j = 0; j < N; j++) { /* for each potential child */
+        if (adjacency[i][j] == 1) { /* skip the zeros... */
           UpdateCountTriangles(budding_adj, i, j, diff,
                                &diff_nEloops, &diff_nFloops);
           budding_adj[i][j] = 1;
@@ -808,7 +923,7 @@ double Logprior_full (int N, int **adjacency)
    using lex and yacc. Meaningful input is then checked and default values
    are specified.
 */
-void ReadScript_Bison (char *filename)
+void ReadScript_Bison (char *const filename)
 {
   int i, j;
   extern FILE *yyin;
@@ -820,14 +935,12 @@ void ReadScript_Bison (char *filename)
   else
     lexerr("no input file");
 
-  // set RNG to unitialised before parsing
-  bInit = 0;
-
-  // set default values for scalar predefined variables
+  /* set default values for predefined scalar variables */
   bPriorConcordance = bPriorDegreeNode = bPriorEdgeCount =
   bPriorMotif = bPriorSCC = 0;
   bNormalGamma = bConstantGamma = bDirichlet = bZellner = 0;
 
+  scale_pB       = 1;
   lambda_concord = 1;
   gamma_degree   = 1;
   alpha_motif    = 1;
@@ -850,13 +963,12 @@ void ReadScript_Bison (char *filename)
   nConvergence_end   = 0;
 
   iter = 1000000000;
-  rdm_gen_name = mt19937; // if gsl is available, use Mersenne twister
+  rdm_gen_name = mt19937; /* if gsl is available, use Mersenne twister */
 
-  // printf("starting script reading...\n
-  //yyrestart(yyin);
+  /* printf("starting script reading...\n"); */
   yyparse();
-  fclose (yyin);
 
+  fclose(yyin);
 
   /* if convergence analysis, do some checks and return immediately */
   if (bConvergence_std ||  bConvergence_inc) {
@@ -887,7 +999,7 @@ void ReadScript_Bison (char *filename)
 
   /* if N too large you have to switch to long */
   if (nNodes > sqrt(INT_MAX))
-    lexerr (" nNodes too large for 'int' indexing");
+    lexerr ("nNodes too large for 'int' indexing");
 
   /* check graph type inconsistencies */
   if (bBN) {
@@ -907,7 +1019,7 @@ void ReadScript_Bison (char *filename)
     if (bAutocycles)
       lexerr ("autocycles are forbidden if hypergraph is True");
 
-  // check priors
+  /* check priors */
   if (bBN) {
     if (bPriorConcordance && edge_requirements)
       for (i = 0; i < nNodes; i++)
@@ -953,7 +1065,7 @@ void ReadScript_Bison (char *filename)
         lexerr ("the Bernoulli prior should have a null diagonal");
   }
 
-  // check data and likelihood
+  /* check data and likelihood */
   bData = (nData > 0);
 
   if (bData && !pData)
@@ -996,12 +1108,13 @@ void ReadScript_Bison (char *filename)
   if (bNAData && bHypergraph)
     lexerr ("Missing data are not implemented for hypergraphs");
 
-  // miscellaneous initializations
+  /* miscellaneous initializations */
+  printf("Randoms initalised with seed %f \n", seed);
   InitRandoms (rdm_gen_name, seed);
 
   bsave_some_graphs = (n_saved_adjacency > 0);
 
-  // printf ("done reading script.\n");
+  /* printf ("done reading script.\n"); */
 
 } /* ReadScript_Bison */
 
@@ -1018,7 +1131,7 @@ void SampleTemperature (void)
   double dPjump;
   #define MINUSLN2 -0.6931471805599452862268
 
-  // Robbins-Monro updating of the temperature pseudo prior
+  /* Robbins-Monro updating of the temperature pseudo prior */
   for (i = 0; i < nTemperatures; i++) {
     if (i == indexT)
       plnPi[i] -= dCZero / (iter + dNZero);
@@ -1026,23 +1139,23 @@ void SampleTemperature (void)
       plnPi[i] += dCZero / (nTemperatures * (iter + dNZero));
   }
 
-  // update population count of current temperature
-  // pCountTemp[indexT]++; // this is for reporting only!
+  /* update population count of current temperature */
+  /* pCountTemp[indexT]++; // this is for reporting only! */
 
-  // propose a new inverse temperature
+  /* propose a new inverse temperature */
   if (indexT == 0)
-    indexT_new = 1;     // move up
+    indexT_new = 1;     /* move up */
   else {
     if (indexT == nTemperatures - 1)
-      indexT_new = indexT - 1;   // move down
+      indexT_new = indexT - 1;   /* move down */
     else
-      if (Randoms() > 0.5)       // move randomly
+      if (Randoms() > 0.5)       /* move randomly */
         indexT_new = indexT + 1;
       else
         indexT_new = indexT - 1;
   }
 
-  // compute importance ratio
+  /* compute importance ratio */
   dPjump = (pInvTemperatures[indexT_new] - pInvTemperatures[indexT]) *
            (bData ? current_logprior : current_logposterior) +
            plnPi[indexT_new] - plnPi[indexT] +
@@ -1051,9 +1164,9 @@ void SampleTemperature (void)
            ((indexT     == 0) || (indexT     == nTemperatures - 1) ?
             0 : MINUSLN2);
 
-  // test the proposed temperature jump
+  /* test the proposed temperature jump */
   if (log(Randoms()) <= dPjump)
-    indexT = indexT_new;  // jump, else stay at indexT
+    indexT = indexT_new;  /* jump, else stay at indexT */
 
 }  /* SampleTemperature */
 
@@ -1083,11 +1196,11 @@ void SetPriorHyperParam (void)
 void UndoDiff (int parent, int child, int diff)
 {
   if (diff < 0) {
-    // just add parent that was removed by increasing the count of parents
+    /* just add parent that was removed by increasing the count of parents */
     nParents[child] += 1;
   }
   else {
-    // remove parent that was added
+    /* remove parent that was added */
     if (diff > 0)
       nParents[child] -= 1;
   }
@@ -1153,8 +1266,6 @@ void UpdateEdgeP (void)
 } /* UpdateEdgeP */
 
 
-
-
 /* ----------------------------------------------------------------------------
 */
 void gsmain (char **szFileIn, char **szPrefixOut)
@@ -1167,45 +1278,18 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   time_t  time_start, time_now;
 
   AnnounceProgram();
+  InitGlobals();
   char *inp = *szFileIn;
-  //char *inp = "C:/github/graph_sampler_loop/graphsampler/tests/script_test_6.txt";
   char *outp = *szPrefixOut;
-  //char *outp = "C:/github/rgs_testing/testski";
   ReadScript_Bison(inp);
   InitOutputs(outp);
-
   if (bConvergence_std ||  bConvergence_inc) {
     ConvergenceAnalysis();
-    CloseOutputs (outp);
+    CloseOutputs(outp);
     return;
   }
 
   InitArrays();
-
-  if(hyper_pB){
-    printf("hyper_pB:");
-    PrintdMatrix(stdout, nNodes, hyper_pB);
-    printf("\n");
-  }
-  if(current_adj){
-    printf("current_adj:");
-    PrintiMatrix(stdout, nNodes, current_adj);
-    printf("\n");
-  }
-  if(edge_requirements) {
-    printf("edge_requirements:");
-    PrintiMatrix(stdout, nNodes, edge_requirements);
-    printf("\n");
-  }
-  if(pData) {
-    printf("pData (n x n):");
-    PrintdMatrix(stdout, nNodes, pData);
-    printf("\n");
-  }
-  printf("lambda %f \n", lambda_concord);
-  printf("nNodes %d \n", nNodes);
-
-
 
   /* compute the prior of the initial network,
   that initializes also book-keeping for fast computations of priors */
@@ -1216,26 +1300,24 @@ void gsmain (char **szFileIn, char **szPrefixOut)
     lexerr("initial network has prior with null probability");
 
   if (bData) {
-    // SetPriorHyperParam(); disabled, not developed
+    /* SetPriorHyperParam(); disabled, not developed */
     current_loglikelihood = Loglikelihood_full(nNodes, pData, component,
                                                component_size);
   }
   else
     current_loglikelihood = 0;
-  printf("GO!\n");
 
   current_logposterior = current_logprior + current_loglikelihood;
-
   dBestPrior      = current_logprior;
   dBestLikelihood = current_loglikelihood;
   dBestPosterior  = current_logposterior;
 
+  //printf("current_adj:\n");
+  //PrintiMatrix(stdout, nNodes, current_adj);
+  //printf("hyper_pB:\n");
+  //PrintdMatrix(stdout, nNodes, hyper_pB);
 
-
-
-
-
-
+  /*
   printf("nParents:");
   for (i = 0; i < nNodes; i++) printf("%d ", nParents[i]);
   printf("\n");
@@ -1257,11 +1339,11 @@ void gsmain (char **szFileIn, char **szPrefixOut)
     printf ("Current integrated likelihood (via full function): %f \n",
             Loglikelihood_full(nNodes, pData, component, component_size));
   }
-
+  */
 
   /* -------------------
-   The sampler is here
-   */
+     The sampler is here
+  */
 
   if (bTempered)
     printf ("Doing %lu tempered MCMC iterations.\n\n...\n\n", nRuns);
@@ -1272,11 +1354,10 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   parent = -1;
   child  =  0;
 
-
   for (iter = 0; iter < nRuns; iter++) {
     /* be careful to stay fast in this loop */
 
-    // printf("\niter %lu\n", iter);
+    /* printf("\niter %lu\n", iter); */
 
     label_Redo_it:
 
@@ -1294,18 +1375,20 @@ void gsmain (char **szFileIn, char **szPrefixOut)
       else {
         child = 0;
 
+        /* note: this is NOT reached if bAutocycles is false */
+
         /* at a start of an adjacency matrix updating cycle
-        test and eventually update the temperature
-        (note: this is NOT reached if bAutocycles is false) */
+           test and eventually update the temperature */
         if (bTempered && (iter > 0))
           SampleTemperature ();
+
+        /* and impute all missing data */
+        if (bNAData)
+          Impute();
+
       }
     }
 
-        /* and impute all missing data */
-        if (bNAData){
-          Impute();
-}
     flag_update_loops = 0;
 
     /* skip the diagonal if no autocycle (as in a pure BN or hypergraph) */
@@ -1317,42 +1400,51 @@ void gsmain (char **szFileIn, char **szPrefixOut)
         parent = 1;
         child  = 0;
 
+        /* note: this is reached if bAutocycles is false */
+
         /* at a start of an adjacency matrix updating cycle
-        test and eventually update the temperature
-        (note: this is reached if bAutocycles is false) */
+           test and eventually update the temperature */
         if (bTempered && (iter > 0))
           SampleTemperature ();
-		/* and impute all missing data */
-        if (bNAData){
-          Impute();}
+
+        /* and impute all missing data */
+        if (bNAData)
+          Impute();
       }
     }
 
     /* sample a move from the baseline Bernoulli prior */
     bEdge = (Randoms () < hyper_pB[parent][child]); /* 0 or 1 */
 
+    //if((iter < 30) && (iter > 0))
+      //printf("iter %d: parent = %d child = %d; current_adj[0][0] = %d; bEdge = %d\n",
+        //     iter, parent, child, current_adj[0][0], bEdge);
+      //printf("iter %d: parent = %d child = %d adj = %d bEdge = %d ",
+      //       iter, parent, child, current_adj[parent][child], bEdge);
+
     if (bEdge == current_adj[parent][child]) {
       diff = 0;
-      // printf("no diff\n");
+      /* printf("no diff\n"); */
     }
     else {
       if (bEdge == 1) { /* adding an edge */
-    diff = 1;
-        // printf("add edge\n");
+        diff = 1;
+
 
         if (bBN) {
+
           /* check if it's still a DAG */
           if (!Check_DAG_Edge (current_adj, parent, child))
             goto label_Redo_it; /* forget attemped move completely */
 
           /* for Zellner likelihood there should not be more parents than data,
-          remembering that nParents has not been updated yet */
+             remembering that nParents has not been updated yet */
           if (bZellner && (nParents[child] == nData))
             goto label_Redo_it;
 
           /* for constant-gamma likelihood there should be less
-          parents than data, remembering that nParents has not been
-          updated yet */
+             parents than data, remembering that nParents has not been
+             updated yet */
           if (bConstantGamma && (nParents[child] == nData - 1))
             goto label_Redo_it;
         }
@@ -1366,58 +1458,58 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
           if (bHypergraph) {
             /* for constant-gamma likelihood there should be less
-            parents than data, even inside a loop, remembering that
-            nParents has not been updated yet */
-            if (nParents[child] == nData - 1)
-              goto label_Redo_it; // printf("undo\n"); }
+               parents than data, even inside a loop, remembering that
+               nParents has not been updated yet */
+            if (bData && (nParents[child] == nData - 1))
+              goto label_Redo_it; /* printf("undo\n"); } */
 
-            Update_parenthood (parent, child, diff);
+            Update_parenthood(parent, child, diff);
 
             if (component[child] != component[parent]) {
-              // printf("add off edge\n");
+              /* printf("add off edge\n"); */
               flag_update_loops = 1;
               if (!UpdateLoops(current_adj, parent, child, diff,
                                &diff_loglikelihood)) {
                 nParents[child] -= 1; /* undo diff */
-            // printf("undo\n");
-            goto label_Redo_it;   /* forget it completely */
-              }
+                /* printf("undo\n"); */
+                goto label_Redo_it;   /* forget it completely */
+        }
             }
             else { /* adding an edge inside a hypernode while respecting the
-              constraint on parent's number: no update needed */
-            // printf("add in edge\n");
-            diff_loglikelihood = 0;
+                      constraint on parent's number: no update needed */
+              /* printf("add in edge\n"); */
+              diff_loglikelihood = 0;
             }
           } /* if hypergraph */
         }
       }
       else { /* removing an edge */
-            diff = -1;
+        diff = -1;
 
         if (bHypergraph) {
 
           Update_parenthood (parent, child, diff);
 
           if (component_size[child] > 1) { /* child was in a loop */
-            if (component[child] != component[parent]) {
-              // printf("remove off edge\n");
+            if (bData && (component[child] != component[parent])) {
+              /* printf("remove off edge\n"); */
               /* we removed a parent of a loop but do not break the
-              loop itself; the loop parent list is recreated in
-              CGLoglikelihood_hypernode; we do not need to update
-              adjacency matrix for the calculations or 'component'
-              since it's only a parenthood change */
+                 loop itself; the loop parent list is recreated in
+                 CGLoglikelihood_hypernode; we do not need to update
+                 adjacency matrix for the calculations or 'component'
+                 since it's only a parenthood change */
 
               /* just store new value, we'll subtract it soon */
               if (!CGLoglikelihood_hypernode (child, pData, component,
                                               &diff_loglikelihood)) {
                 nParents[child] += 1; /* undo diff */
-              // printf("undo\n");
-              goto label_Redo_it;   /* forget it completely */
+                /* printf("undo\n"); */
+                goto label_Redo_it;   /* forget it completely */
               }
 
               /* reminder: likelihood of the supernode is stored in
-              the current_ll_node for every member of the supernode;
-              now we need to remember which nodes will get updated */
+                 the current_ll_node for every member of the supernode;
+                 now we need to remember which nodes will get updated */
 
               /* this loop should be removed in the future */
               for (i = 0; i < nNodes; i++) {
@@ -1432,190 +1524,194 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
             }
             else {
-              // printf("remove in edge\n");
+              /* printf("remove in edge\n"); */
               /* we removed a link within a loop: check if it was destroyed */
               flag_update_loops = 1;
               if (!UpdateLoops (current_adj, parent, child, diff,
                                 &diff_loglikelihood)) {
                 nParents[child] += 1; /* undo diff */
-              // printf("undo\n");
-              goto label_Redo_it;   /* forget it completely */
+                /* printf("undo\n"); */
+                goto label_Redo_it;   /* forget it completely */
               }
             }
           }
           else {
-            // printf("remove edge normal\n");
             /* child was not in a loop: normal DAG score recalculation */
-            Loglikelihood_diff(parent, child, diff, pData, &diff_loglikelihood);
+            if (bData)
+              Loglikelihood_diff(parent, child, diff, pData,
+                                 &diff_loglikelihood);
           }
         } /* end if hypergraph */
       }
     } /* end proposal likelihood calculations */
 
-            /* update posterior */
-            if (diff != 0) { /* change */
-            Logprior_diff (current_adj, parent, child, diff, &diff_logprior);
+    /* update posterior */
+    if (diff != 0) { /* change */
 
-              if (bData && (bBN || bDBN)) {
-                /* contraints on number of parent have been checked above */
-                Update_parenthood (parent, child, diff);
-                Loglikelihood_diff (parent, child, diff, pData, &diff_loglikelihood);
-              }
+      Logprior_diff(current_adj, parent, child, diff, &diff_logprior);
 
-              /* do we really need to compute the posterior if we have no data? */
-              diff_logposterior = diff_logprior + diff_loglikelihood;
+      if (bData && (bBN || bDBN)) {
+        /* contraints on number of parent have been checked above */
+        Update_parenthood (parent, child, diff);
+        Loglikelihood_diff (parent, child, diff, pData, &diff_loglikelihood);
+      }
 
-              if (bTempered) /* elevate to power 1/temperature */
-              diff_logposterior *= pInvTemperatures[indexT];
+      /* do we really need to compute the posterior if we have no data? */
+      diff_logposterior = diff_logprior + diff_loglikelihood;
+
+
+      if (bTempered) /* elevate to power 1/temperature */
+        diff_logposterior *= pInvTemperatures[indexT];
+
+      //if((iter < 30) && (iter > 0))
+        //printf("diff!=0 logprior = %f \n", diff_logposterior);
+
+
+    }
+    else { /* no change */
+      diff_logposterior = 0;
+    }
+
+    /* check for acceptation and proceed accordingly */
+    if ((diff_logposterior >= 0) || (log(Randoms ()) < diff_logposterior)) {
+
+      /* accept */
+      /* printf("accepting\n\n"); */
+
+      UpdateDegrees_if_accept ();
+
+      current_edge_count = current_edge_count + diff;
+
+      UpdateMotifs_if_accept ();
+
+      if (bHypergraph && (diff != 0))
+        current_scc_prior = proposed_scc_prior;
+
+      /* find flattened location of the sampled edge;
+         go down columns, to be compatible with R;
+         must start from 1 to leave 0 as indicator of no change by convention;
+         then signed by the difference between adjacency matrices */
+      diff_location = (parent + child * nNodes + 1) * diff;
+
+      /* eventually write the location to output file */
+      if (bsave_the_chain) {
+        SaveChain (diff_location);
+        if (bTempered) /* eventually save the current inverse temperature */
+          SaveInverseTemperature();
+      }
+
+      /* now we can update the graph adjacency matrix,
+         the parenthood of child has been already changed */
+      if (diff != 0) {
+        current_adj[parent][child] = !(current_adj[parent][child]);
+
+        /* eventually update the total prior */
+        if (bTempered || bsave_best_graph || bsave_some_graphs) {
+          current_logprior += diff_logprior +
+                              Logprior_diff_bernoulli (parent, child, diff);
+        }
+
+        /* update SCCs
+           flag_update_loops is not essential and could be replaced
+           by a different condition? */
+        if (flag_update_loops) {
+          /* always update ALL labels, since labelling is not 'invariant' */
+          for (i = 0; i < nNodes; i++) {
+            component[i] = proposed_component[i];
+            component_size[i] = proposed_component_size[i];
+          }
+        }
+
+        /* eventually update likelihood and posterior */
+        if (bData) {
+
+          if (bTempered || bsave_best_graph || bsave_some_graphs) {
+            current_loglikelihood +=  diff_loglikelihood;
+            current_logposterior   = current_logprior + current_loglikelihood;
+          }
+
+          if (!plistNodesUpdated) { /* case of a single node update */
+            current_ll_node[child] += diff_loglikelihood;
+          }
+          else { /* case of multiple nodes: */
+            while (plistNodesUpdated) {
+              /* grab value and free up that element */
+              i = PopElemi(&plistNodesUpdated);
+              current_ll_node[i] = updated_ll_vector[i];
             }
-            else { /* no change */
-              diff_logposterior = 0;
-            }
+          }
+        } /* end if bData */
 
-            /* check for acceptation and proceed accordingly */
-            if ((diff_logposterior >= 0) || (log(Randoms ()) < diff_logposterior)) {
+        /* eventually update the best graph */
+        if (bsave_best_graph)
+          UpdateBestGraph (); /* eventually not at the lowest temperature! */
 
-              /* accept */
-              /* printf("accepting\n\n"); */
+      } /* end diff != 0 */
+    } /* end of accept */
 
-              UpdateDegrees_if_accept ();
+    else { /* reject */
 
-              current_edge_count = current_edge_count + diff;
+      /* printf("rejecting\n\n"); */
 
-              UpdateMotifs_if_accept ();
+      /* no differences between adjacency matrices: just write out zero */
+      if (bsave_the_chain) {
+        SaveChain (0);
+        if (bTempered) /* save the current inverse temperature */
+          SaveInverseTemperature();
+      }
 
-              if (bHypergraph && (diff != 0))
-                current_scc_prior = proposed_scc_prior;
+      UpdateDegrees_if_reject();
+      UpdateMotifs_if_reject();
 
-              /* find flattened location of the sampled edge;
-              go down columns, to be compatible with R;
-              must start from 1 to leave 0 as indicator of no change by convention;
-              then signed by the difference between adjacency matrices */
-              diff_location = (parent + child * nNodes + 1) * diff;
+      /* no update of adjacency or topo sort list is needed,
+         but the change in parenthood of child needs to be undone */
+      UndoDiff(parent, child, diff);
 
-              /* eventually write the location to output file */
-              if (bsave_the_chain) {
-                SaveChain (diff_location);
-                if (bTempered) /* eventually save the current inverse temperature */
-              SaveInverseTemperature();
-              }
+      /* if loops were updated, forget the list of proposed updates */
+      while (plistNodesUpdated) {
+        /* to free the list */
+        i = PopElemi(&plistNodesUpdated);
+      }
+    } /* end of reject */
 
-              /* now we can update the graph adjacency matrix,
-              the parenthood of child has been already changed */
-              if (diff != 0) {
-                current_adj[parent][child] = !(current_adj[parent][child]);
+    /* cumulate the adjacency matrices, i.e. cumulate edge counts */
+    if (bsave_the_edge_probabilities && (indexT == (nTemperatures - 1)))
+      UpdateEdgeP();
 
-                /* eventually update the total prior */
-                if (bTempered || bsave_best_graph || bsave_some_graphs) {
-                  current_logprior += diff_logprior +
-                    Logprior_diff_bernoulli (parent, child, diff);
-                }
+    /* save eventually the graph, eventually not at the lowest temperature */
+    SaveGraph();
 
-                /* eventually update likelihood and posterior */
-                if (bData) {
+    /* clocking */
+    if (nRuns * nNodes * nData >= 1E10) { /* for long runs */
+      if (iter == 0)
+        time_start = clock();
+      else {
+        if (((iter % (nRuns/10)) == 0) || (iter == nRuns-1)) {
+          time_now = clock();
+          time_elapsed = (time_now - time_start) / CLOCKS_PER_SEC;
+          time_eta = (time_now - time_start)*(nRuns / (double)iter - 1) /
+                     CLOCKS_PER_SEC;
 
-                  if (bTempered || bsave_best_graph || bsave_some_graphs) {
-                    current_loglikelihood +=  diff_loglikelihood;
-                    current_logposterior   = current_logprior + current_loglikelihood;
-                  }
-
-                  if (!plistNodesUpdated) { /* case of a single node update */
-                /* if (plistNodesUpdated->Head == NULL)
-                    printf("No nodes were updated via super-node bookkeeping, "
-                    "only updating node %d, by %f.\n",
-                    child, diff_loglikelihood); */
-                current_ll_node[child] += diff_loglikelihood;
-                  }
-                  else { /* case of multiple nodes: */
-                while (plistNodesUpdated) {
-                  /* grab value and free up that element */
-                  i = PopElemi(&plistNodesUpdated);
-                  current_ll_node[i] = updated_ll_vector[i];
-                }
-
-                  }
-
-                  /* flag_update_loops is not essential and could be replaced
-                  by a different condition? */
-                  if (flag_update_loops) {
-                    /* always update ALL labels, since labelling is not 'invariant' */
-                    for (i = 0; i < nNodes; i++) {
-                      component[i] = proposed_component[i];
-                      component_size[i] = proposed_component_size[i];
-                    }
-                  }
-                } /* end if bData */
-
-                    /* eventually update the best graph */
-                    if (bsave_best_graph)
-                      UpdateBestGraph (); /* eventually not at the lowest temperature! */
-
-              } /* end diff != 0 */
-            } /* end of accept */
-
-                    else { /* reject */
-
-                    // printf("rejecting\n\n");
-
-                    /* no differences between adjacency matrices: just write out zero */
-                    if (bsave_the_chain) {
-                      SaveChain (0);
-                      if (bTempered) /* save the current inverse temperature */
-                    SaveInverseTemperature();
-                    }
-
-                    UpdateDegrees_if_reject ();
-                    UpdateMotifs_if_reject ();
-
-                    /* no update of adjacency or topo sort list is needed,
-                    but the change in parenthood of child needs to be undone */
-                    UndoDiff (parent, child, diff);
-
-                    /* if loops were updated, forget the list of proposed updates */
-                    while (plistNodesUpdated) {
-                      /* to free the list */
-                      i = PopElemi(&plistNodesUpdated);
-                    }
-                    } /* end of reject */
-
-                      /* cumulate the adjacency matrices, i.e. cumulate edge counts */
-                      if (bsave_the_edge_probabilities && (indexT == (nTemperatures - 1)))
-                        UpdateEdgeP ();
-
-                      /* save eventually the graph, eventually not at the lowest temperature */
-                      SaveGraph ();
-
-                      /* clocking */
-                      if (nRuns * nNodes * nData >= 1E10) { /* for long runs */
-                      if (iter == 0)
-                        time_start = clock();
-                      else {
-                        if (((iter % (nRuns/10)) == 0) || (iter == nRuns-1)) {
-                          time_now = clock();
-                          time_elapsed = (time_now - time_start) / CLOCKS_PER_SEC;
-                          time_eta = (time_now - time_start)*(nRuns / (double)iter - 1) /
-                            CLOCKS_PER_SEC;
-
-                          if (iter == (nRuns-1)) {
-                            printf ("%lu iterations completed in %1.f seconds.\n\n",
-                                    nRuns, time_elapsed);
-                          }
-                          else {
-                            printf ("Progress: %lu %%;\telapsed: %1.f sec; "
-                                      "estimated remaining: %1.f sec\n\n",
-                                      iter/(nRuns/100), time_elapsed, time_eta);
-                          }
-                          fflush(stdout);
-                        }
-                      }
-                      } /* end clocking */
+          if (iter == (nRuns-1)) {
+            printf("%lu iterations completed in %1.f seconds.\n\n",
+                   nRuns, time_elapsed);
+          }
+          else {
+            printf("Progress: %lu %%;\telapsed: %1.f sec; "
+                   "estimated remaining: %1.f sec\n\n",
+                   iter/(nRuns/100), time_elapsed, time_eta);
+          }
+          fflush(stdout);
+        }
+      }
+    } /* end clocking */
 
   } /* end iter, end of sampler */
 
-                      /* final results if asked for: */
+  /* final results if asked for: */
 
-                      /* edge probability matrix */
-                      SaveEdgeP(pEdgeFile);
+  /* edge probability matrix */
+  SaveEdgeP(pEdgeFile);
 
   /* best graph */
   SaveBestGraph();
@@ -1630,8 +1726,9 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
   CleanupMemory();
 
-  printf ("Done.\n\n");
+  printf("Done.\n\n");
+
+
   return;
 
 } /* end */
-

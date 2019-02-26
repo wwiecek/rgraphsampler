@@ -1,0 +1,44 @@
+# test input file for graph_sampler
+# dynamic directed acyclic graph (DBN) inference with 3 nodes,
+# first 10 iterations,
+# autocycles allowed, tempered MCMC sampling,
+# basic edge prior and edge count prior, normal-gamma data model and
+# missing data
+# =========================================================================
+
+n_runs = 10;
+n_burn_in = 0;
+
+random_generator = mersenne_twister;
+
+random_seed = 49740;
+
+# perk is the inverse temperature used in tempered MCMC
+perk_scale = array {0.1, 0.5, 0.9, 1};
+
+n_nodes = 3;
+
+dynamic_bayesian_network = true;
+
+autocycle = true;
+
+initial_adjacency = matrix {empty};
+
+hyper_pB = matrix {equanimous};
+
+edge_count_prior = 1;
+
+likelihood = normal_gamma;
+
+n_data = 4;
+
+data = matrix {NaN, 1.2, 1.4, 1.35,
+               2.1, NaN, 2.5, 2.45,
+               3.4, 3.6, NaN, 3.85};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+
+# End.
