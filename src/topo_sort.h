@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/> 
+   See the GNU General Public License at <http://www.gnu.org/licenses/>
 */
 
 #ifndef TOPO_H_DEFINED
@@ -32,8 +32,7 @@ typedef int BOOL;
 
 BOOL   Check_DAG_Edge (int **adjacency, int parent, int child);
 void   InitTopoList (int nNodes);
-BOOL   IsDAG_w_topo (int nNodes, int **adjacency);
-BOOL   IsDAG_w_topo_list (int nNodes, int **adjacency);
+void   KillTopoList ();
 BOOL   IsDAG_w_topo_list_incremental (int nNodes, int **adjacency);
 
 
