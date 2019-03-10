@@ -1,0 +1,15 @@
+# test input file for graph_sampler
+# convergence checking script, standard with edge_P mode.
+# =========================================================================
+
+convergence_check = standard_w_edgeP;
+
+n_nodes = 3; # mandatory standard_w_edgeP convergence
+
+# names of the edge probabilities files:
+file_names = array {"xa_edge_p.out", "xb_edge_p.out", "xc_edge_p.out"};
+
+# End.
+
+
+

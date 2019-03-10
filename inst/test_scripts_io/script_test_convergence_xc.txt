@@ -1,0 +1,28 @@
+# test input file for graph_sampler
+# simple random graph generation with three nodes
+# =========================================================================
+
+n_runs    = 1E3;
+n_burn_in = 0;
+
+random_generator = mersenne_twister;
+
+random_seed = 19660;
+
+n_nodes = 3;
+
+autocycle = true;
+
+initial_adjacency = matrix {1, 0, 1,
+                            0, 0, 0,
+                            0, 0, 0};
+
+hyper_pB = matrix {equanimous};
+
+save_chain = true;
+save_edge_probabilies = true;
+
+# End.
+
+
+

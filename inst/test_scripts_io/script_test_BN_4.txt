@@ -1,0 +1,45 @@
+# test input file for graph_sampler
+# directed acyclic graph (BN) inference with 3 nodes,
+# basic edge prior and concordance prior, normal-gamma data model,
+# and missing data
+# =========================================================================
+
+n_runs    = 1E5;
+n_burn_in = 1E4;
+
+random_seed = 49740;
+
+n_nodes = 3;
+
+bayesian_network = true;
+
+initial_adjacency = matrix
+{0, 1, 0,
+ 0, 0, 1,
+ 0, 0, 0};
+
+hyper_pB = matrix {equanimous};
+
+concordance_prior = true;            
+lambda_concordance = 1.0;                
+edge_requirements = matrix           
+{-1,-1,-1,
+  1,-1,-1,
+  1,-1,-1};     
+
+likelihood = normal_gamma;
+
+n_data = 4;
+
+n_data_levels = array {2, 2, 2};
+
+data = matrix {1.1, NaN, 1.4, 1.35,
+               2.1, 2.4, NaN, 2.45,
+               3.4, 3.6, 3.8, 3.85};
+
+save_chain = true;
+n_saved_adjacency = 20;
+save_best_graph = true;  
+save_edge_probabilies = true;
+
+# End.

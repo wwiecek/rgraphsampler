@@ -1,0 +1,20 @@
+# test input file for graph_sampler
+# convergence checking script, standard with chain mode.
+# =========================================================================
+
+convergence_check = standard_w_chain;
+
+# n_nodes = 3; # optional, except for standard_w_edgeP convergence
+
+start_at_iter = 1;  # start computing convergence at that iteration, included
+
+end_at_iter = 1000; # optional, read up to that iteration, included
+
+# names of the binary chain files:
+file_names = array {"xa_results_mcmc.bin", "xb_results_mcmc.bin",
+                    "xc_results_mcmc.bin"};
+
+# End.
+
+
+

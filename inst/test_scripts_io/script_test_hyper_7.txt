@@ -1,0 +1,32 @@
+# test input file for graph_sampler
+# hypergraphs sampler, first 10 iterations, data imported from a data file
+# =========================================================================
+
+n_runs    = 10;
+n_burn_in = 0;
+
+random_seed = 3456;                        
+
+n_nodes = 5;
+
+hypergraph = true;
+
+initial_adjacency = matrix
+{0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 1,
+ 0, 0, 0, 0, 0,
+ 0, 0, 1, 0, 0};    
+
+likelihood = constant_gamma;
+
+n_data = 50;
+
+data = import_file {"data_hyper_7.dat"};
+
+save_chain = true;
+n_saved_adjacency = 10;
+save_best_graph = true;  
+save_edge_probabilies = true;
+
+# End.
