@@ -20,6 +20,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <R.h>
 
 /* end standard C headers. */
 
@@ -2666,9 +2667,10 @@ int yywrap(void) {
    yyerror
 */
 void yyerror(const char *message) {
-  fprintf(stderr, "Error, line %d: %s near '%s' - Exiting.\n\n",
-          lineno, message, yytext);
-  exit(0);
+  //fprintf(stderr, "Error, line %d: %s near '%s' - Exiting.\n\n",
+  //        lineno, message, yytext);
+  //exit(0);
+  error("Error, line %d: %s near '%s' - Exiting.\n\n", lineno, message, yytext);
 }
 
 /* End. */
