@@ -183,6 +183,9 @@ void CleanupMemory (void)
   //reset RNG
   resetRNG();
 
+  //kill the list for topological sorting
+  KillTopoList();
+
   //set all Boolean flags to 0:
   //we should check if this isn't redundant vs parser set-up
   bData = 0; nData = 0; bNAData = 0;

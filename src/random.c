@@ -121,18 +121,13 @@ double LnGamma (double x)
 double LnMultivariateT (double *x, int dim, /* double *mu, */
                         double **lambda, int df)
 {
-  static int    stored_df = -1;
-  static double stored_constant;
   int           i, j;
   double        dtmp1, dtmp2, log_det;
 
 
   /* first term, with ratio of 2 Gamma functions */
-  if (df != stored_df) {
-    stored_df = df;
-    stored_constant = LnGamma((df + dim) * 0.5) - LnGamma(df * 0.5) -
-                      dim * 0.5 * log(df * PI);
-  }
+  double  stored_constant = LnGamma((df + dim) * 0.5) - LnGamma(df * 0.5) -
+                            dim * 0.5 * log(df * PI);
 
 
   /* (x_i - mu)' * Lambda * (x_i - mu) */
