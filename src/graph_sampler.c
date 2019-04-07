@@ -71,6 +71,9 @@ void AnnounceProgram (void)
   printf("\n");
   printf("***************************************\n");
   printf(">>> This is Graph_sampler version 3 <<<\n");
+#ifdef R_FLAG
+  printf(">>> -----      R edition      ----- <<<\n");
+#endif
   printf("***************************************\n");
   printf("\n");
 

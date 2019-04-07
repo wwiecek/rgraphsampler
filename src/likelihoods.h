@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/> 
+   See the GNU General Public License at <http://www.gnu.org/licenses/>
 */
 
 #ifndef LIKELIHOODS_H_DEFINED
@@ -51,8 +51,6 @@ double DLoglikelihood_node_DBN     (int node, double **pData);
 double GLoglikelihood_node         (int node, double **pData);
 
 double NGLoglikelihood_node_DBN    (int node, double **pData);
-double NGPostPredictiveSample_node (int node, double **pData, 
-                                    double *pSamples);
 
 double ZLoglikelihood_node         (int node, double **pData);
 double ZLoglikelihood_node_DBN     (int node, double **pData);

@@ -17,3 +17,6 @@ COMMENT OUT 1557 in lex.yy.c:
 
 3) Use of non-GSL variant of C graph_sampler.
    Currently GSL version is not supported.
+
+4) main() is replaced with gsmain() function that has
+   different arguments, as it's called via R
