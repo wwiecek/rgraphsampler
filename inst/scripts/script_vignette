@@ -1,0 +1,39 @@
+n_runs    = 2E6;
+n_burn_in = 1E6;
+
+random_seed = 3456;
+
+n_nodes = 20;
+
+hypergraph = true;
+bayesian_network = false;
+
+initial_adjacency = matrix{empty};
+hyper_pB = matrix{equanimous};
+
+motif_prior       = false;
+concordance_prior = false;
+scc_prior         = false;
+#gamma_scc         = 1;
+maximum_scc_size  = 3;
+degree_prior      = false;
+#gamma_degree      = 5.0;
+
+likelihood = constant_gamma;
+
+extra_df_wishart          = 1;
+scale_wishart_diagonal    = 1;
+scale_wishart_offdiagonal = .5;
+
+
+save_chain                   = false;
+save_best_graph              = true;
+save_edge_probabilies        = true;
+save_degree_counts           = false;
+save_motifs_probabilies      = false;
+n_saved_adjacency            = 100;
+
+n_data = 50;
+data = import_file{"rdata.dat"};
+
+# End.
