@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/> 
+   See the GNU General Public License at <http://www.gnu.org/licenses/>
 */
 
 #ifndef GS_H_DEFINED
@@ -71,7 +71,7 @@ double DLoglikelihood_node_DBN (int node, double **pData);
 
 double DLoglikelihood_node_DBN_NA (int node, double **pData);
 
-void   GetCmdLineArgs (int cArg, char *const *rgszArg, char **pszFileIn, 
+void   GetCmdLineArgs (int cArg, char *const *rgszArg, char **pszFileIn,
                        char **pszPrefixOut);
 
 double GLoglikelihood_node (int node, double **pData);
@@ -84,7 +84,7 @@ double GLoglikelihood_node_DBN_NA (int node, double **pData);
 
 void   InitArrays (void);
 
-void   Loglikelihood_diff (int parent, int child, int diff, 
+void   Loglikelihood_diff (int parent, int child, int diff,
                            double **pData, double *logLdiff);
 double Loglikelihood_full (int N, double **pData, int *component,
                            int *component_size);
@@ -94,7 +94,12 @@ void   Logprior_diff (int **adjacency_current,
 double Logprior_diff_bernoulli (int parent_node, int child_node, int diff);
 double Logprior_full (int N, int **adjacency);
 
+#ifdef R_FLAG
 void   ReadScript_Bison (char *filename);
+#endif
+#ifndef R_FLAG
+void   ReadScript_Bison (char *const *filename);
+#endif
 
 void   SampleTemperature (void);
 

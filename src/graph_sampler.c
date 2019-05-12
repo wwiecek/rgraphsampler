@@ -72,7 +72,7 @@ void AnnounceProgram (void)
   printf("***************************************\n");
   printf(">>> This is Graph_sampler version 3 <<<\n");
 #ifdef R_FLAG
-  printf(">>> -----      R edition      ----- <<<\n");
+  printf(">>> -----  R edition, no GSL  ----- <<<\n");
 #endif
   printf("***************************************\n");
   printf("\n");
@@ -88,8 +88,8 @@ void AnnounceProgram (void)
 */
 void CleanupMemory (void)
 {
-
-  //  printf("Attempting memory cleanup\n\n");
+  // free miscellanious lists and pointers
+  // and set them to NULL
   if (current_degrees){
     free (current_degrees);
     current_degrees = NULL;
@@ -102,7 +102,6 @@ void CleanupMemory (void)
     free(component_size);
     component_size = NULL;
   }
-
   if(proposed_component){
     free(proposed_component);
     proposed_component = NULL;
@@ -111,12 +110,10 @@ void CleanupMemory (void)
     free(proposed_component_size);
     proposed_component_size = NULL;
   }
-
   if(dag_component) {
     free(dag_component);
     dag_component = NULL;
   }
-
   if (current_ll_node) {
     free (current_ll_node);
     current_ll_node = NULL;
@@ -150,11 +147,15 @@ void CleanupMemory (void)
     mat_sum = NULL;
   }
 
-  //calculation helper matrices:
+  //free calculation helper matrices
+  //and set them to NULL
   int dim = (nNodes > nData ? nNodes : nData);
   if (bDBN)
     dim = dim + 1;
-  if(pdWorkMatrixSizeN) {FreedMatrix (pdWorkMatrixSizeN, dim); pdWorkMatrixSizeN = NULL;}
+  if(pdWorkMatrixSizeN) {
+    FreedMatrix (pdWorkMatrixSizeN, dim);
+    pdWorkMatrixSizeN = NULL;
+  }
   if(pdM1) { FreedMatrix(pdM1,dim); pdM1 = NULL;}
   if(pdM2) { FreedMatrix(pdM2,dim); pdM2 = NULL;}
   if(pdM3) { FreedMatrix(pdM3,dim); pdM3 = NULL;}
@@ -179,8 +180,8 @@ void CleanupMemory (void)
     free(pInvTemperatures);
     pInvTemperatures = NULL;
   }
+
   //we reset the parsed nNodes, just in case
-  //something extra is run afterwards
   nNodes = 0;
 
   //reset RNG
@@ -189,8 +190,17 @@ void CleanupMemory (void)
   //kill the list for topological sorting
   KillTopoList();
 
-  //set all Boolean flags to 0:
-  //we should check if this isn't redundant vs parser set-up
+  //reset save settings
+  bsave_the_chain                = FALSE;
+  bsave_best_graph               = FALSE;
+  bsave_the_edge_probabilities   = FALSE;
+  bsave_the_degree_counts        = FALSE;
+  bsave_the_motifs_probabilities = FALSE;
+  bsave_some_graphs              = FALSE;
+
+  //set misc. Boolean flags & config variables to 0 or default
+  //this may be redundant given that they are reset
+  //during the parser set-up, but no harm done
   bData = 0; nData = 0; bNAData = 0;
   bDBN = 0; bBN = 0; bTempered=0;
   bZellner = 0; bDirichlet = 0; bConstantGamma = 0; bNormalGamma = 0;
@@ -199,14 +209,6 @@ void CleanupMemory (void)
   bPriorSCC = 0; bPriorConcordance = 0;
   gamma_degree   = 1;
   n_at_targetT = 1;
-
-  //save settings
-  bsave_the_chain = FALSE;
-  bsave_best_graph               = FALSE;
-  bsave_the_edge_probabilities   = FALSE;
-  bsave_the_degree_counts        = FALSE;
-  bsave_the_motifs_probabilities = FALSE;
-  bsave_some_graphs              = FALSE;
 
   scale_pB       = 1;
   lambda_concord = 1;
@@ -235,6 +237,8 @@ void CleanupMemory (void)
   diff_logposterior = 0;
 
 } /* CleanupMemory */
+
+
 
 /* ----------------------------------------------------------------------------
    GetCmdLineArgs
@@ -929,7 +933,12 @@ double Logprior_full (int N, int **adjacency)
    using lex and yacc. Meaningful input is then checked and default values
    are specified.
 */
-void ReadScript_Bison (char *const filename)
+#ifdef R_FLAG
+void   ReadScript_Bison (char *filename)
+#endif
+#ifndef R_FLAG
+void   ReadScript_Bison (char *const *filename)
+#endif
 {
   int i, j;
   extern FILE *yyin;
@@ -1274,25 +1283,45 @@ void UpdateEdgeP (void)
 
 /* ----------------------------------------------------------------------------
 */
-void gsmain (char **szFileIn, char **szPrefixOut)
-//void gsmain ()
-{
-  BOOL   bEdge;
-  int    diff_location, i;
-  /* clock variables */
-  double  time_eta, time_elapsed;
-  time_t  time_start, time_now;
 
+#ifdef R_FLAG
+void gsmain (char **szFileIn, char **szPrefixOut)
+{
   AnnounceProgram();
   InitGlobals();
   char *inp = *szFileIn;
   char *outp = *szPrefixOut;
   ReadScript_Bison(inp);
   InitOutputs(outp);
+#endif
+
+#ifndef R_FLAG
+int main (int nArgs, char *const *rgszArg)
+{
+  char   *szFileIn, *szPrefixOut;
+  AnnounceProgram();
+  InitGlobals();
+  GetCmdLineArgs(nArgs, rgszArg, &szFileIn, &szPrefixOut);
+  ReadScript_Bison(szFileIn);
+  InitOutputs(szPrefixOut);
+#endif
+
+  BOOL   bEdge;
+  int    diff_location, i;
+  /* clock variables */
+  double  time_eta, time_elapsed;
+  time_t  time_start, time_now;
+
   if (bConvergence_std ||  bConvergence_inc) {
     ConvergenceAnalysis();
+#ifndef R_FLAG
+    CloseOutputs (szPrefixOut);
+    return (1);
+#endif
+#ifdef R_FLAG
     CloseOutputs(outp);
     return;
+#endif
   }
 
   InitArrays();
@@ -1317,35 +1346,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   dBestPrior      = current_logprior;
   dBestLikelihood = current_loglikelihood;
   dBestPosterior  = current_logposterior;
-
-  //printf("current_adj:\n");
-  //PrintiMatrix(stdout, nNodes, current_adj);
-  //printf("hyper_pB:\n");
-  //PrintdMatrix(stdout, nNodes, hyper_pB);
-
-  /*
-  printf("nParents:");
-  for (i = 0; i < nNodes; i++) printf("%d ", nParents[i]);
-  printf("\n");
-  if(bHypergraph){
-    printf("Strongly Connected Component:");
-    for (i = 0; i < nNodes; i++) printf("%d ", component[i]);
-    printf("\n");
-
-    printf("Component sizes (each node):");
-    for (i = 0; i < nNodes; i++) printf("%d ", component_size[i]);
-    printf ("\n");
-  }
-  if(current_ll_node){
-    printf("Node integrated log-likelihoods:");
-    for (i = 0; i < nNodes; i++) printf("%f ", current_ll_node[i]);
-    printf ("\n");
-    printf ("Current integrated likelihood (kept in GS): %f \n",
-            current_loglikelihood);
-    printf ("Current integrated likelihood (via full function): %f \n",
-            Loglikelihood_full(nNodes, pData, component, component_size));
-  }
-  */
 
   /* -------------------
      The sampler is here
@@ -1430,7 +1430,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
     if (bEdge == current_adj[parent][child]) {
       diff = 0;
-      /* printf("no diff\n"); */
     }
     else {
       if (bEdge == 1) { /* adding an edge */
@@ -1472,18 +1471,15 @@ void gsmain (char **szFileIn, char **szPrefixOut)
             Update_parenthood(parent, child, diff);
 
             if (component[child] != component[parent]) {
-              /* printf("add off edge\n"); */
               flag_update_loops = 1;
               if (!UpdateLoops(current_adj, parent, child, diff,
                                &diff_loglikelihood)) {
                 nParents[child] -= 1; /* undo diff */
-                /* printf("undo\n"); */
                 goto label_Redo_it;   /* forget it completely */
         }
             }
             else { /* adding an edge inside a hypernode while respecting the
                       constraint on parent's number: no update needed */
-              /* printf("add in edge\n"); */
               diff_loglikelihood = 0;
             }
           } /* if hypergraph */
@@ -1498,7 +1494,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
           if (component_size[child] > 1) { /* child was in a loop */
             if (bData && (component[child] != component[parent])) {
-              /* printf("remove off edge\n"); */
               /* we removed a parent of a loop but do not break the
                  loop itself; the loop parent list is recreated in
                  CGLoglikelihood_hypernode; we do not need to update
@@ -1509,7 +1504,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
               if (!CGLoglikelihood_hypernode (child, pData, component,
                                               &diff_loglikelihood)) {
                 nParents[child] += 1; /* undo diff */
-                /* printf("undo\n"); */
                 goto label_Redo_it;   /* forget it completely */
               }
 
@@ -1568,11 +1562,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
 
       if (bTempered) /* elevate to power 1/temperature */
         diff_logposterior *= pInvTemperatures[indexT];
-
-      //if((iter < 30) && (iter > 0))
-        //printf("diff!=0 logprior = %f \n", diff_logposterior);
-
-
     }
     else { /* no change */
       diff_logposterior = 0;
@@ -1582,8 +1571,6 @@ void gsmain (char **szFileIn, char **szPrefixOut)
     if ((diff_logposterior >= 0) || (log(Randoms ()) < diff_logposterior)) {
 
       /* accept */
-      /* printf("accepting\n\n"); */
-
       UpdateDegrees_if_accept ();
 
       current_edge_count = current_edge_count + diff;
@@ -1728,13 +1715,22 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   /* motifs probabilities */
   SaveMotifsP(pMotifFile);
 
+#ifdef R_FLAG
   CloseOutputs(outp);
+#endif
+#ifndef R_FLAG
+  CloseOutputs(szPrefixOut);
+#endif
 
   CleanupMemory();
 
   printf("Done.\n\n");
 
-
+#ifdef R_FLAG
   return;
+#endif
+#ifndef R_FLAG
+  return(1);
+#endif
 
 } /* end */
