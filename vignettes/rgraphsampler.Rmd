@@ -18,9 +18,9 @@ fig.width = 8, fig.height = 5)
 set.seed(1245)
 ```
 
-The aim of this short vignette is to introduce `rgraphsampler`, a simple R interface for calling [graph_sampler](https://savannah.nongnu.org/projects/graphsampler/) software from R and manipulating the results, designed primarily for non-Linux users. 
+The aim of this short vignette is to introduce `rgraphsampler`, a simple R interface for calling [graph_sampler](http://www.nongnu.org/graphsampler/) software from R and manipulating the results, designed primarily for non-Linux users. 
 
-*Graph_Sampler* is a graph or network inference and simulation package developed by Frederic Bois. *Graph_Sampler* allows you to generate structured random graphs and perform fully Bayesian inference on Bayesian networks' or dynamic Bayesian networks' structure. Markov chain Monte Carlo algorithms are used to those effects. The code is standard C. It uses flex and bison for development, and optionally libgsl at run-time. It is distributed under a GNU GPL license and maintained at <https://savannah.nongnu.org/projects/graphsampler/>
+*Graph_Sampler* is a graph or network inference and simulation package developed by Frederic Bois. *Graph_Sampler* allows you to generate structured random graphs and perform fully Bayesian inference on Bayesian networks' or dynamic Bayesian networks' structure. Markov chain Monte Carlo algorithms are used to those effects. The code is standard C. It uses flex and bison for development, and optionally libgsl at run-time. It is distributed under a GNU GPL license and maintained at [Savannah](https://savannah.nongnu.org/projects/graphsampler/). If you are not familiar with *graph_sampler*, please refer to the project's website, <http://www.nongnu.org/graphsampler/>.
 
 The objective of `rgraphsampler` is two-fold:
 

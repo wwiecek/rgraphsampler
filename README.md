@@ -1,9 +1,14 @@
 
-#rgraphsampler
+# rgraphsampler
 
-*Graph_Sampler* is a graph or network inference and simulation package developed by Frederic Bois. *Graph_Sampler* allows you to generate structured random graphs and perform fully Bayesian inference on Bayesian networks' or dynamic Bayesian networks' structure. Markov chain Monte Carlo algorithms are used to those effects. The code is standard C. It uses flex and bison for development, and optionally libgsl at run-time. It is distributed under a GNU GPL license and maintained at <https://savannah.nongnu.org/projects/graphsampler/>
+*Graph_Sampler* is a network inference and simulation package developed by Frederic Bois. *Graph_Sampler* allows you to generate structured random graphs and perform fully Bayesian inference on Bayesian networks' or dynamic Bayesian networks' structure. If you are not familiar with *graph_sampler*, please refer to the project's website, <http://www.nongnu.org/graphsampler/>.
 
-_rgraphsampler_ is a simple R interface for calling *graph_sampler*'s C code from R and manipulating the results, designed primarily for non-Linux users. 
+_rgraphsampler_ is a simple R interface for calling *graph_sampler*'s C code (v3.1) from R and manipulating the results, designed primarily for non-Linux users. 
+
+The objective of `rgraphsampler` is two-fold:
+
+1. To make available to R users a convenient tool for performing inference in *Graph_Sampler*
+2. To make working with outputs of *Graph_Sampler* analyses easier.
 
 
 ## Installation and basic use case
