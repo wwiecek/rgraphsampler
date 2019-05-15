@@ -8,12 +8,14 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+  
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+collapse = TRUE,
+comment = "#>",
+fig.width = 8, fig.height = 5)
+
+set.seed(1245)
 ```
 
 The aim of this short vignette is to introduce `rgraphsampler`, a simple R interface for calling [graph_sampler](https://savannah.nongnu.org/projects/graphsampler/) software from R and manipulating the results, designed primarily for non-Linux users. 
@@ -91,69 +93,137 @@ By default `rgs` will `return_result`, i.e. after sampling is complete, the resu
 
 
 
-## Example: analysing linear Gaussian model in *graph_sampler*
+## Example: analysing linear Gaussian model
+
+### Generating graphs in rgraphsampler 
+
+
+
+### Generating data in rgraphsampler
 
 While *graph_sampler* scripts cannot be generated from R, it is often the case that data that the scripts use will be prepared in R. A simple function for generating linear models of Gaussian variables is included in `rgraphsampler`; it is called `gen_data_from_graph`. The purpose of this function is not only for testing code validity or generating examples, but primarily for model building -- it is recommend to test model performance on simulated data in all "real" analyses. For continuous variables, *graph_sampler* assumes that for $x_{i,n}$, i.e. $n$-th observation of $i$-th node
 
 $$x_{i,n} = \sum_{j = 1, \ldots, |Pa(X_i)|}\beta_{ji}x_{j,n} + \alpha_i + \epsilon_{i,n}$$
-
-where $\epsilon_i$ is i.i.d. $\mathcal{N}(0, \sigma_i)$. For SCCs analogous multivariate model is used; `gen_data_from_graph` allows for specification of all $\beta$, $\alpha$, $\sigma$ parameters, as well as creation of cyclical structures (multivariate Gaussian variables of any size) within the graph. Here, however, we use the simplest linear structure, as we aim only illustrate the R workflow. 
+where $\epsilon_i$ is i.i.d. $\mathcal{N}(0, \sigma_i)$. For SCCs analogous multivariate model is used; `gen_data_from_graph` allows for specification of all $\beta$, $\alpha$, $\sigma$ parameters, as well as creation of cyclical structures (multivariate Gaussian variables of any size) within the graph. 
 
 ```{r}
-beta <- matrix(rbinom(10*10, 1, .2), 10, 10)
-beta[lower.tri(beta)] <- 0 #'sorted' matrix
-diag(beta) <- 0
-data <- gen_data_from_graph(beta)
+g_adj <- matrix(c(
+  0, 1, 0, 0, 0, 0, 0,
+  0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 
+  0, 0, 0, 0, 1, 0, 0, 
+  0, 0, 1, 0, 0, 1, 0,
+  0, 0, 0, 0, 0, 0, 1,
+  0, 0, 0, 0, 0, 0, 0), 7, 7, byrow=T)
+data <- gen_data_from_graph(beta = g_adj, alpha = rep(0, 7),
+                            loop = c(1,2,3,3,3,4,5), cor_loop = .9,
+                            ndata = 200)
 ```
 
+Before analysing we can visualise the true causal graph and the sampled data:
+
+```{r}
+l <- data.frame(x = c(-2, -1, -0.2,  0.6,  0.2,  1.0,    2) / 2,
+                y = c( 0,  0,    0, -2/3,  2/3,  2/3,  2/3) )
+
+gr <- igraph::graph_from_adjacency_matrix(g_adj)
+igraph::V(gr)$name <- c("P", LETTERS[1:5], "Q") #set vertex labels
+fig1 <- plot(gr, layout = as.matrix(l), rescale = F,
+             vertex.frame.color = "black", vertex.label.color = "black", 
+             vertex.size = 1.5*20, vertex.color = "white",
+             edge.color = "black", edge.arrow.size = .5)
+```
+
+```{r}
+pairs(data)
+```
+
+
+
+### Data script
 A generic script for working with the data generated above is included in the package.
 
 ```{r}
 in_file <- system.file(package = "rgraphsampler", "scripts", "script_vignette")
 ```
 
-Once again, the built-in scripts can be easily reviewed using `file.show()` command. 
+Once again, the built-in scripts can be easily reviewed using `file.show()` command. We print it out here to also demonstrate simplicity of *graph_sampler*'s syntax:
 
 ```
-n_runs    = 2E6;
-n_burn_in = 1E6;
+n_runs    = 4E6;
+n_burn_in = 2E6;
+
 random_seed = 3456;
 
-n_nodes = 20;
+n_nodes = 7;
+
 hypergraph = true;
 bayesian_network = false;
 
 initial_adjacency = matrix{empty};
 hyper_pB = matrix{equanimous};
+
+degree_prior      = true;
+gamma_degree      = 3.0;
+motif_prior       = false;
+concordance_prior = false;
+
+scc_prior         = true;
+gamma_scc         = 1;
+maximum_scc_size  = 3;
+
 likelihood = constant_gamma;
 
 extra_df_wishart          = 1;
 scale_wishart_diagonal    = 1;
-scale_wishart_offdiagonal = .5;
+scale_wishart_offdiagonal = 0.5;
 
-save_chain                   = false;
 save_best_graph              = true;
 save_edge_probabilies        = true;
-save_degree_counts           = false;
-save_motifs_probabilies      = false;
 n_saved_adjacency            = 100;
 
-n_data = 50;
+n_data = 200;
 data = import_file{"rdata.dat"};
 ```
 
-The script calls for data inputs to be imported from `rdata.dat` file. We can prepare that file directly from R:
+In the last line, the script calls for data inputs to be imported from `rdata.dat` file. We can prepare that file directly from R:
 
 ```{r}
-write(data, file = "rdata.dat", ncolumns = 20)
+write(data, file = "rdata.dat", ncolumns = 200)
 ```
 
-Running graph_sampler from R:
+
+We then run graph_sampler from R and automatically store outputs in an object of class `rgs`. Network nodes can also be labelled at this stage:
 
 ```{r,eval=TRUE}
-gs_fit <- rgs(in_file)
+gs_fit <- rgs(in_file, 
+              node_names = c("P", LETTERS[1:5], "Q"))
+```
+
+Default `summary` and `plot` methods are implemented for `rgs` outputs. 
+
+```{r}
+summary(gs_fit)
+```
+
+Since the default plotting method uses the `igraph` package, extra arguments can be passed to improve the plots. By passing an additional argument we can also remove edges with probabilities lower than 25% from being displayed, for clarity of presentation.
+
+
+```{r, fig.width = 8, fig.height=4}
+par(mfrow = c(1,3), oma = rep(0, 4), mar = rep(1,4))
+plot(gs_fit, .25,
+     layout = as.matrix(l), 
+             vertex.frame.color = "black", vertex.label.color = "black", 
+             vertex.size = 1.5*20, vertex.color = "white",
+             edge.color = "black", edge.arrow.size = .5)
 ```
 
 
+## Conclusion
+
+The short example which we presented here is only a proof of concept for an R package. However, the R package in its current format offers all of the features of *graph_sampler*'s C version and allows us to perform fully Bayesian structure learning with only a few lines of code, entirely in R.
 
 
+```{r, include=FALSE}
+unloadNamespace("rgraphsampler")
+```

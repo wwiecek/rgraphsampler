@@ -22,6 +22,7 @@ summary.rgs <- function(object, ..., digits) {
   # SCCs:
   if(length(object[["scc"]]) > 0) {
     tab <- as.data.frame(sort(table(unlist(object[["scc"]])), decreasing = T))
+    tab[,1] <- paste0("(", tab[,1], ")")
     names(tab) <- c("SCC", "N_samples")
     if(nrow(tab) > 10){
       cat("Most frequently appearing SCCs: \n")

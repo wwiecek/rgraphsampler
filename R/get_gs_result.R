@@ -13,7 +13,6 @@
 get_gs_result <- function(file_name, node_names = NULL) {
   # Probabilities:
   edgep    <- read.table(paste0(file_name, "_edge_p.out"))
-
   nnodes <- ncol(edgep)
 
   # Names

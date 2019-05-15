@@ -3,12 +3,18 @@
 #' @export
 
 plot.rgs <- function(x, y, ...) {
+  if(missing(y)) y <- 0
+
   # Best graph
   bestg_ig <- igraph::graph_from_adjacency_matrix(as.matrix(x$best_graph), mode = "directed")
   bestg_ig <- igraph::set_vertex_attr(bestg_ig, value = x$node_names, name = "name")
 
   # Set layout for all graphs
-  default_layout <- igraph::layout.auto(bestg_ig)
+  ll <- list(...)
+  if("layout" %in% names(ll))
+    default_layout <- ll[["layout"]]
+  else
+    default_layout <- igraph::layout.auto(bestg_ig)
 
   plot(bestg_ig, main = "Best graph", layout = default_layout, ...)
 
