@@ -1,5 +1,5 @@
 #' Generic plots for rgs objects
-#'
+#' @import igraph
 #' @export
 
 plot.rgs <- function(x, y, ...) {
@@ -18,7 +18,7 @@ plot.rgs <- function(x, y, ...) {
   edgep_ig <- igraph::graph_from_adjacency_matrix(pr, weighted = T, mode = "directed")
   edgep_ig <- igraph::set_vertex_attr(edgep_ig, value = x$node_names, name = "name")
   plot(edgep_ig, main = "Edge probabilities", layout = default_layout,
-       edge.width=E(edgep_ig)$weight*5,
+       edge.width = igraph::E(edgep_ig)$weight*5,
        ...)
 
   # SCCs (if present)
@@ -40,6 +40,6 @@ plot.rgs <- function(x, y, ...) {
     scc_ig <- igraph::graph_from_adjacency_matrix(scc_adj, weighted = T, mode = "directed")
     scc_ig <- igraph::set_vertex_attr(scc_ig, value = x$node_names, name = "name")
     plot(scc_ig, main = "SCC", layout = default_layout,
-         edge.width=E(edgep_ig)$weight, ...)
+         edge.width = igraph::E(edgep_ig)$weight, ...)
   }
 }
