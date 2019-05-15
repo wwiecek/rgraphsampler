@@ -38,7 +38,7 @@ This vignette is not an introduction to *graph_sampler* itself, for which comple
 >
 > No knowledge of computer programming is required, unless you want to tailor the program to special needs (in which case you may want to contact us).
 
-As indicated, basics of the methodology are covered by two papers: [Bois and Gayraud](http://arxiv.org/abs/1311.6443), [Datta et al](https://link.springer.com/article/10.1007%2Fs00180-017-0719-1), although new features have been added to the software since.
+As indicated, the basics of the methodology are covered by two papers: [Bois and Gayraud](http://arxiv.org/abs/1311.6443), [Datta et al](https://link.springer.com/article/10.1007%2Fs00180-017-0719-1), although new features have been added to the software since.
 
 
 
@@ -50,7 +50,7 @@ C code included in this package requires compilation from source. Installing fro
 library(rgraphsampler)
 ```
 
-*graph_sampler* scripts are ran with `rgs()` function; `rgs(file_in, file_out)` is equivalent to `graph_sampler <file_in> <file_out>` 
+*graph_sampler* scripts are ran with the `rgs()` function; `rgs(file_in, file_out)` is equivalent to `graph_sampler <file_in> <file_out>`.
 
 R version is fully featured in that it directly uses unmodified *graph_sampler* code within the package. However, GSL versions of functions are disabled to decrease dependencies for non-Linux users. Therefore the results obtained through R version should be equivalent to running non-GSL version of *graph_sampler*.
 
@@ -93,13 +93,11 @@ By default `rgs` will `return_result`, i.e. after sampling is complete, the resu
 
 ## Example: analysing linear Gaussian model in *graph_sampler*
 
-While *graph_sampler* scripts cannot be generated from R, it is often the case that data that the scripts use will be prepared in R. A simple function for generating linear models of Gaussian variables is included in `rgraphsampler`; it is called `gen_data_from_graph`. The purpose of this function is not only for testing code validity or generating examples, but primarily for model building -- it is recommend to test model performance on simulated data in all "real" analyses. 
-
-[REFERENCE HERE] For continuous variables, *graph_sampler* assumes that for $x_{i,n}$, i.e. $n$-th observation of $i$-th node
+While *graph_sampler* scripts cannot be generated from R, it is often the case that data that the scripts use will be prepared in R. A simple function for generating linear models of Gaussian variables is included in `rgraphsampler`; it is called `gen_data_from_graph`. The purpose of this function is not only for testing code validity or generating examples, but primarily for model building -- it is recommend to test model performance on simulated data in all "real" analyses. For continuous variables, *graph_sampler* assumes that for $x_{i,n}$, i.e. $n$-th observation of $i$-th node
 
 $$x_{i,n} = \sum_{j = 1, \ldots, |Pa(X_i)|}\beta_{ji}x_{j,n} + \alpha_i + \epsilon_{i,n}$$
 
-where $epsilon_i$ is i.i.d. $\mathcal{N}(0, \sigma_i)$. For SCCs analogous multivariate model is used; `gen_data_from_graph` allows for specification of all $\beta$, $\alpha$, $\sigma$ parameters, as well as creation of cyclical structures (multivariate Gaussian variables of any size) within the graph. Here, however, we use the simplest linear structure, as we aim only illustrate the R workflow. 
+where $\epsilon_i$ is i.i.d. $\mathcal{N}(0, \sigma_i)$. For SCCs analogous multivariate model is used; `gen_data_from_graph` allows for specification of all $\beta$, $\alpha$, $\sigma$ parameters, as well as creation of cyclical structures (multivariate Gaussian variables of any size) within the graph. Here, however, we use the simplest linear structure, as we aim only illustrate the R workflow. 
 
 ```{r}
 beta <- matrix(rbinom(10*10, 1, .2), 10, 10)
@@ -114,7 +112,7 @@ A generic script for working with the data generated above is included in the pa
 in_file <- system.file(package = "rgraphsampler", "scripts", "script_vignette")
 ```
 
-Once again, the built-in files can be easily reviewed using `file.show()` command. 
+Once again, the built-in scripts can be easily reviewed using `file.show()` command. 
 
 ```
 n_runs    = 2E6;
