@@ -11,20 +11,26 @@
 #' @export
 
 get_gs_result <- function(file_name, node_names = NULL) {
-  # Probabilities:
-  edgep    <- read.table(paste0(file_name, "_edge_p.out"))
+
+  # 1/ Probabilities
+  # If using tempering, 1st line will have temperatures info
+  # So we skip it
+  edgep_file <- paste0(file_name, "_edge_p.out")
+  first_line <- readLines(edgep_file, 1)
+  edgep    <- read.table(edgep_file,
+                         skip = 1*grepl("temperature", first_line))
   nnodes <- ncol(edgep)
 
-  # Names
+  # 2/ Names
   if(is.null(node_names))
     node_names <- paste0("V", 1:nnodes)
   rownames(edgep) <- colnames(edgep) <- node_names
 
-  # Best graph:
+  # 3/ Best graph
   bestg    <- read.table(paste0(file_name, "_best_graph.out"), nrows = nnodes)
   rownames(bestg) <- colnames(bestg) <- node_names
 
-  # Samples:
+  # 4/ Samples
   samples <- get_samples(paste0(file_name, "_graph_samples.out"))
 
 

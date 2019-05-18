@@ -4,15 +4,13 @@
 # runs a folder of predefined scripts in a loop,
 # then compares results against stored outputs
 
+# If there are problems with static variables / garbage collection
+# Please use unloadNamespace() for testing scripts one by one first
 
 print("Hi!")
 
 df <- "c:/github/rgraphsampler/inst/test_scripts/"
 library(rgraphsampler)
-# lf <- list.files(df, pattern=".txt$")[c(30, 29, 15)]
-# lf <- list.files(df, pattern=".txt$")[16:20]
-# lf <- list.files(df, pattern=".txt$")[1:17]
-# lf <- list.files(df, pattern=".txt$")[c(19)]
 lf <- list.files(df, pattern=".txt$")
 for(file in lf) {
   print(file)
