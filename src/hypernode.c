@@ -330,6 +330,7 @@ int UpdateLoops(int **adj, int parent, int child, int diff,
   int    max_component_visited = -1;
   double tmp_loglik;
   int    i, j;
+
   /* compute SCC (we know that diff is != 0) */
   adj[parent][child] = !adj[parent][child];
   /* if diff == -1 we could restrict to a tiny subgraph - see below */

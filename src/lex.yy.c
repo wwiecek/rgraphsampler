@@ -1,5 +1,5 @@
 
-#line 2 "lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -21,10 +21,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#ifdef R_FLAG
-#include <R.h>
-#endif
-
 /* end standard C headers. */
 
 /* flex integer type definitions */
@@ -37,7 +33,7 @@
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
 /* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
- * if you want the limit (max/min) macros for int types.
+ * if you want the limit (max/min) macros for int types. 
  */
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
@@ -54,7 +50,7 @@ typedef uint32_t flex_uint32_t;
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
 typedef int flex_int32_t;
-typedef unsigned char flex_uint8_t;
+typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
 
@@ -165,7 +161,7 @@ extern FILE *yyin, *yyout;
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
-
+    
     /* Note: We specifically omit the test for yy_rule_can_match_eol because it requires
      *       access to the local variable yy_act. Since yyless() is a macro, it would break
      *       existing scanners that call yyless() from OUTSIDE yylex.
@@ -187,7 +183,7 @@ extern FILE *yyin, *yyout;
                     if ( *p == '\n' )\
                         --yylineno;\
             }while(0)
-
+    
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
 	do \
@@ -859,10 +855,10 @@ static const flex_int16_t yy_chk[810] =
 /* Table of booleans, true if rule could match eol. */
 static const flex_int32_t yy_rule_can_match_eol[86] =
     {   0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 
     0, 0, 1, 1, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
@@ -898,12 +894,15 @@ char *yytext;
 #include <stdlib.h>
 #include <limits.h>
 #include "y.tab.h"
+#ifdef R_FLAG
+#include<R.h>
+#endif
 void   yyerror(const char *message);
 int    lineno = 1;
 double dTmp;
-#line 900 "lex.yy.c"
+#line 904 "lex.yy.c"
 /* Rules */
-#line 902 "lex.yy.c"
+#line 906 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -963,9 +962,9 @@ extern int yywrap ( void );
 #endif
 
 #ifndef YY_NO_UNPUT
-
+    
     static void yyunput ( int c, char *buf_ptr  );
-
+    
 #endif
 
 #ifndef yytext_ptr
@@ -1095,7 +1094,7 @@ YY_DECL
 	yy_state_type yy_current_state;
 	char *yy_cp, *yy_bp;
 	int yy_act;
-
+    
 	if ( !(yy_init) )
 		{
 		(yy_init) = 1;
@@ -1123,13 +1122,13 @@ YY_DECL
 		}
 
 	{
-#line 37 "gs_lexer.l"
-
-
 #line 40 "gs_lexer.l"
+
+
+#line 43 "gs_lexer.l"
                              /* scalars */
 
-#line 1128 "lex.yy.c"
+#line 1132 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1181,7 +1180,7 @@ yy_find_action:
 			int yyl;
 			for ( yyl = 0; yyl < yyleng; ++yyl )
 				if ( yytext[yyl] == '\n' )
-
+					
     yylineno++;
 ;
 			}
@@ -1199,333 +1198,333 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 42 "gs_lexer.l"
+#line 45 "gs_lexer.l"
 { return alpha_motif_id; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 44 "gs_lexer.l"
+#line 47 "gs_lexer.l"
 { return alpha_normal_gamma_id; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 46 "gs_lexer.l"
+#line 49 "gs_lexer.l"
 { return autocycle_id; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 48 "gs_lexer.l"
+#line 51 "gs_lexer.l"
 { return bBN_id; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 50 "gs_lexer.l"
+#line 53 "gs_lexer.l"
 { return beta_motif_id; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 52 "gs_lexer.l"
+#line 55 "gs_lexer.l"
 { return beta_normal_gamma_id; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 54 "gs_lexer.l"
+#line 57 "gs_lexer.l"
 { return bPriorConcordance_id; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 56 "gs_lexer.l"
+#line 59 "gs_lexer.l"
 { return bConvergence_check_id; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 58 "gs_lexer.l"
+#line 61 "gs_lexer.l"
 { return data_id; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 60 "gs_lexer.l"
+#line 63 "gs_lexer.l"
 { return bPriorDegreeNode_id; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 62 "gs_lexer.l"
+#line 65 "gs_lexer.l"
 { return bPriorEdgeCount_id; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 64 "gs_lexer.l"
+#line 67 "gs_lexer.l"
 { return edge_requirements_id; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 66 "gs_lexer.l"
+#line 69 "gs_lexer.l"
 { return end_at_iter_id; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 68 "gs_lexer.l"
+#line 71 "gs_lexer.l"
 { return extra_df_wishart_id; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 70 "gs_lexer.l"
+#line 73 "gs_lexer.l"
 { return bDBN_id; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 72 "gs_lexer.l"
+#line 75 "gs_lexer.l"
 { return chain_file_names_id; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 74 "gs_lexer.l"
+#line 77 "gs_lexer.l"
 { return gamma_degree_id; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 76 "gs_lexer.l"
+#line 79 "gs_lexer.l"
 { return gamma_scc_id; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 78 "gs_lexer.l"
+#line 81 "gs_lexer.l"
 { return gamma_zellner_id; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 80 "gs_lexer.l"
+#line 83 "gs_lexer.l"
 { return hyper_pB_id; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 82 "gs_lexer.l"
+#line 85 "gs_lexer.l"
 { return bHypergraph_id; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 84 "gs_lexer.l"
+#line 87 "gs_lexer.l"
 { return initial_adjacency_id; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 86 "gs_lexer.l"
+#line 89 "gs_lexer.l"
 { return lambda_concord_id; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 88 "gs_lexer.l"
+#line 91 "gs_lexer.l"
 { return lambda_scc_id; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 90 "gs_lexer.l"
+#line 93 "gs_lexer.l"
 { return likelihood_id; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 92 "gs_lexer.l"
+#line 95 "gs_lexer.l"
 { return maximum_scc_size_id; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 94 "gs_lexer.l"
+#line 97 "gs_lexer.l"
 { return bPriorMotif_id; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 96 "gs_lexer.l"
+#line 99 "gs_lexer.l"
 { return nBurnin_id; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 98 "gs_lexer.l"
+#line 101 "gs_lexer.l"
 { return nData_id; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 100 "gs_lexer.l"
+#line 103 "gs_lexer.l"
 { return nLevels_id; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 102 "gs_lexer.l"
+#line 105 "gs_lexer.l"
 { return nNodes_id; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 104 "gs_lexer.l"
+#line 107 "gs_lexer.l"
 { return nRuns_id; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 106 "gs_lexer.l"
+#line 109 "gs_lexer.l"
 { return n_saved_adjacency_id; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 108 "gs_lexer.l"
+#line 111 "gs_lexer.l"
 { return perk_scale_id; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 110 "gs_lexer.l"
+#line 113 "gs_lexer.l"
 { return rdm_generator_id; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 112 "gs_lexer.l"
+#line 115 "gs_lexer.l"
 { return seed_id; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 114 "gs_lexer.l"
+#line 117 "gs_lexer.l"
 { return bsave_best_graph_id; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 116 "gs_lexer.l"
+#line 119 "gs_lexer.l"
 { return bsave_the_degree_counts_id; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 118 "gs_lexer.l"
+#line 121 "gs_lexer.l"
 { return bsave_the_edge_probabilities_id; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 120 "gs_lexer.l"
+#line 123 "gs_lexer.l"
 { return bsave_the_motifs_probabilities_id; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 122 "gs_lexer.l"
+#line 125 "gs_lexer.l"
 { return bsave_the_chain_id; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 124 "gs_lexer.l"
+#line 127 "gs_lexer.l"
 { return scale_wishart_diag_id; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 126 "gs_lexer.l"
+#line 129 "gs_lexer.l"
 { return scale_wishart_offdiag_id; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 128 "gs_lexer.l"
+#line 131 "gs_lexer.l"
 { return bPriorSCC_id; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 130 "gs_lexer.l"
+#line 133 "gs_lexer.l"
 { return start_at_iter_id; }
 	YY_BREAK
 /* keywords */
 case 46:
 YY_RULE_SETUP
-#line 135 "gs_lexer.l"
+#line 138 "gs_lexer.l"
 { return NA; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 136 "gs_lexer.l"
+#line 139 "gs_lexer.l"
 { return NA; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 137 "gs_lexer.l"
+#line 140 "gs_lexer.l"
 { return ARRAY; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 138 "gs_lexer.l"
+#line 141 "gs_lexer.l"
 { return CONSTANTGAMMA; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 139 "gs_lexer.l"
+#line 142 "gs_lexer.l"
 { return DIRICHLET; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 140 "gs_lexer.l"
+#line 143 "gs_lexer.l"
 { return EMPTY; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 141 "gs_lexer.l"
+#line 144 "gs_lexer.l"
 { return EQUANIMOUS; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 142 "gs_lexer.l"
+#line 145 "gs_lexer.l"
 { return IMPORT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 143 "gs_lexer.l"
+#line 146 "gs_lexer.l"
 { return INCREMENTAL; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 144 "gs_lexer.l"
+#line 147 "gs_lexer.l"
 { return FULL; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 145 "gs_lexer.l"
+#line 148 "gs_lexer.l"
 { return MATRIX; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 146 "gs_lexer.l"
+#line 149 "gs_lexer.l"
 { return MT19937; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 147 "gs_lexer.l"
+#line 150 "gs_lexer.l"
 { return NORMALGAMMA; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 148 "gs_lexer.l"
+#line 151 "gs_lexer.l"
 { return RANDOM; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 149 "gs_lexer.l"
+#line 152 "gs_lexer.l"
 { return STANDARD_CHAIN; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 150 "gs_lexer.l"
+#line 153 "gs_lexer.l"
 { return STANDARD_EDGEP; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 151 "gs_lexer.l"
+#line 154 "gs_lexer.l"
 { return TAUS2; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 152 "gs_lexer.l"
+#line 155 "gs_lexer.l"
 { return ZELLNER; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 154 "gs_lexer.l"
+#line 157 "gs_lexer.l"
 { yylval.ival = 1; return INTEGER; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 156 "gs_lexer.l"
+#line 159 "gs_lexer.l"
 { yylval.ival = 0; return INTEGER; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 159 "gs_lexer.l"
+#line 162 "gs_lexer.l"
 { dTmp = atof(yytext);
             if (dTmp > INT_MAX) {
               if (dTmp > LONG_MAX) {
@@ -1543,110 +1542,110 @@ YY_RULE_SETUP
           }
 	YY_BREAK
 case 67:
-#line 176 "gs_lexer.l"
-case 68:
-#line 177 "gs_lexer.l"
-case 69:
-#line 178 "gs_lexer.l"
-case 70:
 #line 179 "gs_lexer.l"
+case 68:
+#line 180 "gs_lexer.l"
+case 69:
+#line 181 "gs_lexer.l"
+case 70:
+#line 182 "gs_lexer.l"
 case 71:
 YY_RULE_SETUP
-#line 179 "gs_lexer.l"
+#line 182 "gs_lexer.l"
 { yylval.dval = atof(yytext); return FLOAT; }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 181 "gs_lexer.l"
-{ // put dummy stuff here (to avoid stupid compiler warnings)
-  // when compiled in R this will crash (due to parser not exiting
-  // correctly?)
+#line 184 "gs_lexer.l"
+{ /* put dummy stuff here (to avoid stupid compiler warnings) */
 #ifndef R_FLAG
+            /* when compiled in R this will crash (due to parser not exiting
+               correctly apparently) */
             input(); yyunput(0, "a");
 #endif
-            // instruct to get out
+            /* instruct to get out */
             return end_id; }
 	YY_BREAK
 case 72:
 /* rule 72 can match eol */
 YY_RULE_SETUP
-#line 186 "gs_lexer.l"
+#line 193 "gs_lexer.l"
 { lineno++; } /* skip but count */
 	YY_BREAK
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 188 "gs_lexer.l"
+#line 195 "gs_lexer.l"
 { lineno++; } /* skip but count */
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 190 "gs_lexer.l"
+#line 197 "gs_lexer.l"
 { return *yytext; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 192 "gs_lexer.l"
+#line 199 "gs_lexer.l"
 { return L_CBRACE; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 194 "gs_lexer.l"
+#line 201 "gs_lexer.l"
 { return R_CBRACE; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 196 "gs_lexer.l"
+#line 203 "gs_lexer.l"
 { return L_PARENTHESIS; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 198 "gs_lexer.l"
+#line 205 "gs_lexer.l"
 { return R_PARENTHESIS; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 200 "gs_lexer.l"
+#line 207 "gs_lexer.l"
 { ; } /* skip whitespace, including carriage return */
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 202 "gs_lexer.l"
+#line 209 "gs_lexer.l"
 { ; } /* skip comments */
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 204 "gs_lexer.l"
+#line 211 "gs_lexer.l"
 { yylval.pchar = yytext;
-            // printf("Temporary variable \"%s\"\n\n", yytext);
+            /* printf("Temporary variable \"%s\"\n\n", yytext); */
             return IDENTIFIER; }
 	YY_BREAK
 case 82:
 /* rule 82 can match eol */
 YY_RULE_SETUP
-#line 208 "gs_lexer.l"
+#line 215 "gs_lexer.l"
 { yylval.pchar = yytext;
-            // printf("Chain file name \"%s\"\n\n", yytext);
+            /* printf("Chain file name \"%s\"\n\n", yytext); */
             return CHAINFILENAME; }
 	YY_BREAK
 case 83:
 /* rule 83 can match eol */
 YY_RULE_SETUP
-#line 212 "gs_lexer.l"
+#line 219 "gs_lexer.l"
 { yylval.pchar = yytext;
-            // printf("File name \"%s\"\n\n", yytext);
+            /* printf("File name \"%s\"\n\n", yytext); */
             return FILENAME; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 216 "gs_lexer.l"
+#line 223 "gs_lexer.l"
 { return *yytext; } /* let yacc take care of the junk */
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 218 "gs_lexer.l"
+#line 225 "gs_lexer.l"
 ECHO;
 	YY_BREAK
-#line 1641 "lex.yy.c"
+#line 1649 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1927,7 +1926,7 @@ static int yy_get_next_buffer (void)
 {
 	yy_state_type yy_current_state;
 	char *yy_cp;
-
+    
 	yy_current_state = (yy_start);
 	yy_current_state += YY_AT_BOL();
 
@@ -1984,7 +1983,7 @@ static int yy_get_next_buffer (void)
     static void yyunput (int c, char * yy_bp )
 {
 	char *yy_cp;
-
+    
     yy_cp = (yy_c_buf_p);
 
 	/* undo effects of setting up yytext */
@@ -2033,7 +2032,7 @@ static int yy_get_next_buffer (void)
 
 {
 	int c;
-
+    
 	*(yy_c_buf_p) = (yy_hold_char);
 
 	if ( *(yy_c_buf_p) == YY_END_OF_BUFFER_CHAR )
@@ -2096,7 +2095,7 @@ static int yy_get_next_buffer (void)
 
 	YY_CURRENT_BUFFER_LVALUE->yy_at_bol = (c == '\n');
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_at_bol )
-
+		
     yylineno++;
 ;
 
@@ -2106,12 +2105,12 @@ static int yy_get_next_buffer (void)
 
 /** Immediately switch to a different input stream.
  * @param input_file A readable stream.
- *
+ * 
  * @note This function does not reset the start condition to @c INITIAL .
  */
     void yyrestart  (FILE * input_file )
 {
-
+    
 	if ( ! YY_CURRENT_BUFFER ){
         yyensure_buffer_stack ();
 		YY_CURRENT_BUFFER_LVALUE =
@@ -2124,11 +2123,11 @@ static int yy_get_next_buffer (void)
 
 /** Switch to a different input buffer.
  * @param new_buffer The new input buffer.
- *
+ * 
  */
     void yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer )
 {
-
+    
 	/* TODO. We should be able to replace this entire function body
 	 * with
 	 *		yypop_buffer_state();
@@ -2168,13 +2167,13 @@ static void yy_load_buffer_state  (void)
 /** Allocate and initialize an input buffer state.
  * @param file A readable stream.
  * @param size The character buffer size in bytes. When in doubt, use @c YY_BUF_SIZE.
- *
+ * 
  * @return the allocated buffer state.
  */
     YY_BUFFER_STATE yy_create_buffer  (FILE * file, int  size )
 {
 	YY_BUFFER_STATE b;
-
+    
 	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state )  );
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
@@ -2197,11 +2196,11 @@ static void yy_load_buffer_state  (void)
 
 /** Destroy the buffer.
  * @param b a buffer created with yy_create_buffer()
- *
+ * 
  */
     void yy_delete_buffer (YY_BUFFER_STATE  b )
 {
-
+    
 	if ( ! b )
 		return;
 
@@ -2222,7 +2221,7 @@ static void yy_load_buffer_state  (void)
 
 {
 	int oerrno = errno;
-
+    
 	yy_flush_buffer( b );
 
 	b->yy_input_file = file;
@@ -2238,13 +2237,13 @@ static void yy_load_buffer_state  (void)
     }
 
         b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
-
+    
 	errno = oerrno;
 }
 
 /** Discard all buffered characters. On the next scan, YY_INPUT will be called.
  * @param b the buffer state to be flushed, usually @c YY_CURRENT_BUFFER.
- *
+ * 
  */
     void yy_flush_buffer (YY_BUFFER_STATE  b )
 {
@@ -2273,7 +2272,7 @@ static void yy_load_buffer_state  (void)
  *  the current state. This function will allocate the stack
  *  if necessary.
  *  @param new_buffer The new state.
- *
+ *  
  */
 void yypush_buffer_state (YY_BUFFER_STATE new_buffer )
 {
@@ -2303,7 +2302,7 @@ void yypush_buffer_state (YY_BUFFER_STATE new_buffer )
 
 /** Removes and deletes the top of the stack, if present.
  *  The next element becomes the new top.
- *
+ *  
  */
 void yypop_buffer_state (void)
 {
@@ -2327,7 +2326,7 @@ void yypop_buffer_state (void)
 static void yyensure_buffer_stack (void)
 {
 	yy_size_t num_to_alloc;
-
+    
 	if (!(yy_buffer_stack)) {
 
 		/* First allocation is just for 2 elements, since we don't know if this
@@ -2370,13 +2369,13 @@ static void yyensure_buffer_stack (void)
 /** Setup the input buffer state to scan directly from a user-specified character buffer.
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
- *
+ * 
  * @return the newly allocated buffer state object.
  */
 YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 {
 	YY_BUFFER_STATE b;
-
+    
 	if ( size < 2 ||
 	     base[size-2] != YY_END_OF_BUFFER_CHAR ||
 	     base[size-1] != YY_END_OF_BUFFER_CHAR )
@@ -2405,14 +2404,14 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 /** Setup the input buffer state to scan a string. The next call to yylex() will
  * scan from a @e copy of @a str.
  * @param yystr a NUL-terminated string to scan
- *
+ * 
  * @return the newly allocated buffer state object.
  * @note If you want to scan bytes that may contain NUL values, then use
  *       yy_scan_bytes() instead.
  */
 YY_BUFFER_STATE yy_scan_string (const char * yystr )
 {
-
+    
 	return yy_scan_bytes( yystr, (int) strlen(yystr) );
 }
 
@@ -2420,7 +2419,7 @@ YY_BUFFER_STATE yy_scan_string (const char * yystr )
  * scan from a @e copy of @a bytes.
  * @param yybytes the byte buffer to scan
  * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
- *
+ * 
  * @return the newly allocated buffer state object.
  */
 YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
@@ -2429,7 +2428,7 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 	char *buf;
 	yy_size_t n;
 	int i;
-
+    
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = (yy_size_t) (_yybytes_len + 2);
 	buf = (char *) yyalloc( n  );
@@ -2483,16 +2482,16 @@ static void yynoreturn yy_fatal_error (const char* msg )
 /* Accessor  methods (get/set functions) to struct members. */
 
 /** Get the current line number.
- *
+ * 
  */
 int yyget_lineno  (void)
 {
-
+    
     return yylineno;
 }
 
 /** Get the input stream.
- *
+ * 
  */
 FILE *yyget_in  (void)
 {
@@ -2500,7 +2499,7 @@ FILE *yyget_in  (void)
 }
 
 /** Get the output stream.
- *
+ * 
  */
 FILE *yyget_out  (void)
 {
@@ -2508,7 +2507,7 @@ FILE *yyget_out  (void)
 }
 
 /** Get the length of the current token.
- *
+ * 
  */
 int yyget_leng  (void)
 {
@@ -2516,7 +2515,7 @@ int yyget_leng  (void)
 }
 
 /** Get the current token.
- *
+ * 
  */
 
 char *yyget_text  (void)
@@ -2526,18 +2525,18 @@ char *yyget_text  (void)
 
 /** Set the current line number.
  * @param _line_number line number
- *
+ * 
  */
 void yyset_lineno (int  _line_number )
 {
-
+    
     yylineno = _line_number;
 }
 
 /** Set the input stream. This does not discard the current
  * input buffer.
  * @param _in_str A readable stream.
- *
+ * 
  * @see yy_switch_to_buffer
  */
 void yyset_in (FILE *  _in_str )
@@ -2568,7 +2567,7 @@ static int yy_init_globals (void)
 
     /* We do not touch yylineno unless the option is enabled. */
     yylineno =  1;
-
+    
     (yy_buffer_stack) = NULL;
     (yy_buffer_stack_top) = 0;
     (yy_buffer_stack_max) = 0;
@@ -2594,7 +2593,7 @@ static int yy_init_globals (void)
 /* yylex_destroy is for both reentrant and non-reentrant scanners. */
 int yylex_destroy  (void)
 {
-
+    
     /* Pop the buffer stack, destroying each element. */
 	while(YY_CURRENT_BUFFER){
 		yy_delete_buffer( YY_CURRENT_BUFFER  );
@@ -2620,7 +2619,7 @@ int yylex_destroy  (void)
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char* s1, const char * s2, int n )
 {
-
+		
 	int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
@@ -2645,7 +2644,7 @@ void *yyalloc (yy_size_t  size )
 
 void *yyrealloc  (void * ptr, yy_size_t  size )
 {
-
+		
 	/* The cast to (char *) in the following accommodates both
 	 * implementations that use char* generic pointers, and those
 	 * that use void* generic pointers.  It works with the latter
@@ -2663,7 +2662,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 218 "gs_lexer.l"
+#line 225 "gs_lexer.l"
 
 
 int yywrap(void) {
@@ -2674,15 +2673,12 @@ int yywrap(void) {
    yyerror
 */
 void yyerror(const char *message) {
-
 #ifndef R_FLAG
   fprintf(stderr, "Error, line %d: %s near '%s' - Exiting.\n\n",
           lineno, message, yytext);
   exit(0);
-#endif
-
-#ifdef R_FLAG
-  error("Error, line %d: %s near '%s' - Exiting.\n\n",
+#else
+  error("Error, line %d: %s near '%s' - Exiting.\n\n", 
         lineno, message, yytext);
 #endif
 

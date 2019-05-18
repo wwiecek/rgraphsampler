@@ -9,7 +9,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
-   See the GNU General Public License at <http://www.gnu.org/licenses/> 
+   See the GNU General Public License at <http://www.gnu.org/licenses/>
 
    Output routines.
 */
@@ -111,7 +111,7 @@ void CloseOutputs (char *const prefixname)
   if (bsave_the_motifs_probabilities) {
     fclose(pMotifFile);
     if (prefixname)
-      printf("Motifs frequencies written to %s_motifs_count.out.\n\n", 
+      printf("Motifs frequencies written to %s_motifs_count.out.\n\n",
              prefixname);
     else
       printf("Motifs frequencies written to motifs_count.out.\n\n");
@@ -120,7 +120,7 @@ void CloseOutputs (char *const prefixname)
   if (bNAData) {
     fclose(pImputedFile);
     if (prefixname)
-      printf("Imputed data written to %s_missing_data.out.\n\n", 
+      printf("Imputed data written to %s_missing_data.out.\n\n",
              prefixname);
     else
       printf("Imputed data written to missing_data.out.\n\n");
@@ -129,7 +129,7 @@ void CloseOutputs (char *const prefixname)
   if (bConvergence_std ||  bConvergence_inc) {
     fclose(pConvergenceFile);
     if (prefixname)
-      printf("Convergence diagnostic written to %s_convergence.out.\n\n", 
+      printf("Convergence diagnostic written to %s_convergence.out.\n\n",
              prefixname);
     else
       printf("Convergence diagnostic written to convergence.out.\n\n");
@@ -163,8 +163,8 @@ void CreateFileName (char *const filename, char *const prefixname,
 void InitOutputs (char *const prefixname)
 {
   char filename[MAXFILENAME+20];
-   
-  /* initialize an output file for the best (maximum probability) adjacency 
+
+  /* initialize an output file for the best (maximum probability) adjacency
      matrix */
   if (bsave_best_graph) {
     CreateFileName(filename, prefixname, "best_graph.out");
@@ -269,7 +269,7 @@ void InitOutputs (char *const prefixname)
 /* ----------------------------------------------------------------------------
    InitBuffer
 
-   Initialize a small (integer) buffer for bit-packing writing or reading. 
+   Initialize a small (integer) buffer for bit-packing writing or reading.
 */
 void InitBuffer (PBITBUFFER buf)
 {
@@ -282,7 +282,7 @@ void InitBuffer (PBITBUFFER buf)
 /* ----------------------------------------------------------------------------
    ReadBitOffBuffer
 
-   Reads a bit-pack 0/1 integer at the left of the unsigned integer buffer buf. 
+   Reads a bit-pack 0/1 integer at the left of the unsigned integer buffer buf.
    If buf is empty, it is read from the global pChainFile.
    Return values are 1 for success, 0 for reading errors or EOF.
 */
@@ -312,8 +312,8 @@ int ReadBitOffBuffer (FILE *pChainFile, PBITBUFFER buf, int *bit)
 
    Reads an MCMC chain saved by diffing in packed binary format.
    See SaveChain comments on bit-packed format.
-   The diff read in is ouput in *diff. 
-   Return values are 1 for success, 0 if the termination code (binary 
+   The diff read in is ouput in *diff.
+   Return values are 1 for success, 0 if the termination code (binary
    pair [1,0]) is found, -1 for reading errors or EOF before termination code.
 */
 int Read_diff_buffered (FILE *pChainFile, PBITBUFFER buf, int *diff)
@@ -351,7 +351,7 @@ int Read_diff_buffered (FILE *pChainFile, PBITBUFFER buf, int *diff)
 /* ----------------------------------------------------------------------------
    WriteBitToBuffer
 
-   Bit-pack a 0/1 integer at the left of the unsigned integer buffer buf. 
+   Bit-pack a 0/1 integer at the left of the unsigned integer buffer buf.
    If buf is full, it is written to the global pChainFile.
 */
 void WriteBitToBuffer (PBITBUFFER buf, int to_out)
@@ -374,8 +374,8 @@ void WriteBitToBuffer (PBITBUFFER buf, int to_out)
 /* ----------------------------------------------------------------------------
    ReadChain
 
-   Read a MCMC chain saved with SaveChain (packed bits format). 
-   See in SaveChain how the chain is written. 
+   Read a MCMC chain saved with SaveChain (packed bits format).
+   See in SaveChain how the chain is written.
    This is provided as an example, or for debugging.
 */
 void ReadChain ()
@@ -385,7 +385,7 @@ void ReadChain ()
   static        BITBUFFER buf;
 
   InitBuffer(&buf);
-  
+
   printf("Opening...\n");
   if (!(pChainFile = fopen("results_mcmc.bin", "r"))) {
     printf("Error: cannot open file results_mcmc.bin - Exiting\n\n");
@@ -459,12 +459,12 @@ void ReadChain ()
 /* ----------------------------------------------------------------------------
    SaveChain
 
-   Write the full adjacency matrix at start (as a bit-packed string of 
+   Write the full adjacency matrix at start (as a bit-packed string of
    integers) and encode integer "to_out" in two bits after that.
-   The number of nodes (an integer) has already been written in the output 
+   The number of nodes (an integer) has already been written in the output
    file at its initialization.
-   This assumes that the adjacency matrix is scanned systematically for 
-   change (so there is no need to record location). 
+   This assumes that the adjacency matrix is scanned systematically for
+   change (so there is no need to record location).
 */
 void SaveChain (int to_out)
 {
@@ -483,8 +483,8 @@ void SaveChain (int to_out)
     /* along the chain, pack to_out (-1, 0, or +1) into two bits,
        the first bit for sign, the second for change:
 
-                change       
-               Yes    No  
+                change
+               Yes    No
             +------+------+
            +|  01  |  00  |
        sign +------+------+
@@ -507,7 +507,7 @@ void SaveChain (int to_out)
       /* printf("b1: 1, b2: 0\n"); */
 
       /* flush buffer */
-      fwrite (&buf, sizeof(unsigned int), 1, pChainFile);        
+      fwrite (&buf, sizeof(unsigned int), 1, pChainFile);
       /* printf("\nwrote %u\n\n", buf); */
     }
   } /* if iter >= nBurnin */
@@ -532,8 +532,8 @@ void SaveBestGraph (void)
 
       /* (re)compute SCCs for the best graph */
       Tarjan_with_sizes (best_adj, nNodes, component, component_size);
-      
-      /* print non-degenerate components and all count components 
+
+      /* print non-degenerate components and all count components
          (including degenerate components of size one) */
       int n_all_components = 0;
       for (i = 0; i < nNodes; i++) {
@@ -544,7 +544,7 @@ void SaveBestGraph (void)
       /* print the nodes associated with each non-degenerate component
          and component size */
       int size, init = 0;
-      for (i = 1; i <= n_all_components; i++) { 
+      for (i = 1; i <= n_all_components; i++) {
         j = 0;
         while (component[j] != i) /* find the first occurence of SCC i */
           j++;
@@ -565,7 +565,7 @@ void SaveBestGraph (void)
       }
       if (init == TRUE)
         fprintf(pBestFile, "\n");
-      
+
       free(component);
       free(component_size);
     }
@@ -573,7 +573,7 @@ void SaveBestGraph (void)
     fprintf(pBestFile, "Log(prior probability):     %.12g\n", dBestPrior);
 
     if (bData) {
-      fprintf(pBestFile, "Log(integrated likelihood): %.12g\n", 
+      fprintf(pBestFile, "Log(integrated likelihood): %.12g\n",
               dBestLikelihood);
       fprintf(pBestFile, "Log(posterior probability): %.12g\n", dBestPosterior);
     }
@@ -602,7 +602,7 @@ void SaveConvergence (FILE *outFile, double *pdmat_gmean, double *pdmat_vari,
       fprintf(outFile, "containing edge probabilities over "
                        "the whole recorded chains.\n");
   }
-  
+
   fprintf(outFile, "\nOverall edge probabilities:\n");
   for (j = 0; j < nNodes; j++) {
     for (k = 0; k < nNodes; k++)
@@ -666,7 +666,7 @@ void SaveEdgeP (FILE *outFile)
 
     if (bTempered) {
       if (n_at_targetT > 0)
-        fprintf(outFile, "%lu samples at target temperature.\n\n", 
+        fprintf(outFile, "%lu samples at target temperature.\n\n",
                          n_at_targetT);
       else {
         fprintf(outFile, "No sample at target temperature, "
@@ -699,10 +699,10 @@ void SaveGraph (void)
     PrintiMatrix(pGraphsFile, nNodes, current_adj);
 
     fprintf(pGraphsFile, "Number of edges: %ld\n", current_edge_count);
-    
+
     if (bHypergraph) {
-      
-      /* print non-degenerate components and all count components 
+
+      /* print non-degenerate components and all count components
          (including degenerate components of size one) */
       int n_all_components = 0;
       for (i = 0; i < nNodes; i++) {
@@ -713,7 +713,7 @@ void SaveGraph (void)
       /* print the nodes associated with each non-degenerate component
          and component size */
       int size, init = 0;
-      for (i = 1; i <= n_all_components; i++) { 
+      for (i = 1; i <= n_all_components; i++) {
         j = 0;
         while (component[j] != i) /* find the first occurence of SCC i */
           j++;
@@ -737,16 +737,16 @@ void SaveGraph (void)
     }
 
     if (bTempered)
-      fprintf(pGraphsFile, "Inverse temperature:        %g\n", 
+      fprintf(pGraphsFile, "Inverse temperature:        %g\n",
               pInvTemperatures[indexT]);
 
-    fprintf(pGraphsFile,   "Log(prior probability):     %.6g\n", 
+    fprintf(pGraphsFile,   "Log(prior probability):     %.6g\n",
             current_logprior);
 
     if (bData) {
-      fprintf(pGraphsFile, "Log(integrated likelihood): %.6g\n", 
+      fprintf(pGraphsFile, "Log(integrated likelihood): %.6g\n",
               current_loglikelihood);
-      fprintf(pGraphsFile, "Log(posterior probability): %.6g\n\n\n", 
+      fprintf(pGraphsFile, "Log(posterior probability): %.6g\n\n\n",
       current_logposterior);
     }
     else

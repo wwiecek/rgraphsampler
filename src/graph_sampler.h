@@ -94,12 +94,7 @@ void   Logprior_diff (int **adjacency_current,
 double Logprior_diff_bernoulli (int parent_node, int child_node, int diff);
 double Logprior_full (int N, int **adjacency);
 
-#ifdef R_FLAG
 void   ReadScript_Bison (char *filename);
-#endif
-#ifndef R_FLAG
-void   ReadScript_Bison (char *const *filename);
-#endif
 
 void   SampleTemperature (void);
 
@@ -243,7 +238,7 @@ double *plnPi;               /* array of temperatures pseudo-priors */
 int    edgeP_thin;           /* step size for edge probability calculation */
 double **mat_sum;            /* cumulated edges counts over graphs */
 double **pdWorkMatrixSizeN;  /* work space */
-double **pdM1;              /* pdM's are likelihood calc helpers */
+double **pdM1;               /* likelihood temporary matrices */
 double **pdM2;
 double **pdM3;
 double **pdM4;

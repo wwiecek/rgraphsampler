@@ -46,11 +46,11 @@ void Update_parenthood (int parent, int child, int diff)
   BOOL bFound;
   int  i, iTmp;
 
-  // change parenthood arrays; beware of indices...
+  /* change parenthood arrays; beware of indices... */
   if (diff < 0) {
-    // remove parent
+    /* remove parent */
     if (parent == index_parents[child][nParents[child]-1]) {
-      // last, just decrease the count of parents
+      /* last, just decrease the count of parents */
       nParents[child] -= 1;
     }
     else {
@@ -172,7 +172,7 @@ double Loglikelihood_full (int N, double **pData, int *component,
       printf ("\n");
   */
 
-  // sum up the log-likelihoods of each node
+  /* sum up the log-likelihoods of each node */
   for (i = 0; i < N; i++) {
     if (bAllowed_parents[i]) {
 
@@ -188,20 +188,20 @@ double Loglikelihood_full (int N, double **pData, int *component,
         cumLL += current_ll_node[i];
       }
       else { /* BN or hypergraph */
-        if (component_size[i] > 1) { // we are dealing with an hypernode
+        if (component_size[i] > 1) { /* we are dealing with an hypernode */
           if (max_component_visited < component[i]) {
             if (!CGLoglikelihood_hypernode (i, pData, component, &tmp_loop_ll))
               lexerr("hypernode too large in Loglikelihood_full\n");
             cumLL += tmp_loop_ll;
             max_component_visited = component[i];
 
-            // store the likelihood in all relevant loops:
+            /* store the likelihood in all relevant loops: */
             for (j = i; j < N; j++)
               if (component[j] == component[i])
                 current_ll_node[j] = tmp_loop_ll;
           }
         }
-        else { // standard BN code
+        else { /* standard BN code */
           if (bZellner)
             current_ll_node[i] = ZLoglikelihood_node (i, pData);
           else {
@@ -216,7 +216,7 @@ double Loglikelihood_full (int N, double **pData, int *component,
     } /* if bAllowed_parents */
   } /* for i */
 
-  // printf ("Loglikelihood = %f\n\n", cumLL);
+  /* printf ("Loglikelihood = %f\n\n", cumLL); */
 
   return(cumLL);
 
@@ -265,36 +265,36 @@ double GLoglikelihood_node (int node, double **pData)
   int j, k;
   double df;
 
-  // the vector mu of prior data expectations is null, so forget it
+  /* the vector mu of prior data expectations is null, so forget it */
 
-  // we need the data precision matrix (1 - x inv(x'x + n0) x') alpha / beta
-  // see Bernardo, appendix
+  /* we need the data precision matrix (1 - x inv(x'x + n0) x') alpha / beta
+     see Bernardo, appendix */
 
-  // nzero is taken for now to be the identity matrix
+  /* nzero is taken for now to be the identity matrix */
 
-  // store t(X) * X + n_zero in pdM1, X being the design matrix
-  // X is implicit given the parents of the node considered, otherwise it
-  // would have a column of 1 and the data of the parents as other columns.
-  // Remember that n_zero is set to the identity matrix
+  /* store t(X) * X + n_zero in pdM1, X being the design matrix
+     X is implicit given the parents of the node considered, otherwise it
+     would have a column of 1 and the data of the parents as other columns.
+     Remember that n_zero is set to the identity matrix */
 
-  pdM1[0][0] = 1 + nData; // n_zero element 1 + n * 1
+  pdM1[0][0] = 1 + nData; /* n_zero element 1 + n * 1 */
 
-  // 1st line and 1st column of pdM1
+  /* 1st line and 1st column of pdM1 */
   for (j = 0; j < nParents[node]; j++) {
-    pdM1[0][j+1] = 0; // set it to n_zero off diagonal element
+    pdM1[0][j+1] = 0; /* set it to n_zero off diagonal element */
     for (k = 0; k < nData; k++) {
       pdM1[0][j+1] += pData[index_parents[node][j]][k];
     }
     pdM1[j+1][0] = pdM1[0][j+1];
   }
 
-  // rest of pdM1
+  /* rest of pdM1 */
   for (i = 0; i < nParents[node]; i++) {
     for (j = i; j < nParents[node]; j++) {
       if (i == j)
-        pdM1[i+1][j+1] = 1; // set it to n_zero diagonal element
+        pdM1[i+1][j+1] = 1; /* set it to n_zero diagonal element */
       else
-        pdM1[i+1][j+1] = 0; // set it to n_zero off diagonal element
+        pdM1[i+1][j+1] = 0; /* set it to n_zero off diagonal element */
       for (k = 0; k < nData; k++) {
         pdM1[i+1][j+1] += pData[index_parents[node][i]][k] *
                           pData[index_parents[node][j]][k];
@@ -303,7 +303,7 @@ double GLoglikelihood_node (int node, double **pData)
     }
   }
 
-  // invert t(X) * X + n_zero, that is: invert pdM1
+  /* invert t(X) * X + n_zero, that is: invert pdM1 */
   if (nParents[node] == 0) {
     pdM1[0][0] = 1 / pdM1[0][0];
   }
@@ -311,10 +311,10 @@ double GLoglikelihood_node (int node, double **pData)
     InvertMatrix_Chol(pdM1, 1+nParents[node]);
   }
 
-  // premultiply by X, store the result in pdM2
+  /* premultiply by X, store the result in pdM2 */
   for (i = 0; i < nData; i++) {
     for (j = 0; j < nParents[node]+1; j++) {
-      pdM2[i][j] = pdM1[0][j]; // no need to multiply by 1
+      pdM2[i][j] = pdM1[0][j]; /* no need to multiply by 1 */
       for (k = 1; k < nParents[node]+1; k++) {
         pdM2[i][j] += pData[index_parents[node][k-1]][i] *
                       pdM1[k][j];
@@ -327,10 +327,10 @@ double GLoglikelihood_node (int node, double **pData)
   for (i = 0; i < nData; i++) {
     for (j = i; j < nData; j++) {
       if (i == j) {
-        pdM1[i][j] = 1 - pdM2[i][0]; // no need to multiply by 1
+        pdM1[i][j] = 1 - pdM2[i][0]; /* no need to multiply by 1 */
       }
       else {
-        pdM1[i][j] =   - pdM2[i][0]; // no need to multiply by 1
+        pdM1[i][j] =   - pdM2[i][0]; /* no need to multiply by 1 */
       }
       for (k = 1; k < nParents[node]+1; k++) {
         pdM1[i][j] -= pdM2[i][k] *
@@ -341,10 +341,10 @@ double GLoglikelihood_node (int node, double **pData)
     }
   }
 
-  // degrees of freedom
+  /* degrees of freedom */
   df = 2 * alpha_normal_gamma;
 
-  // evaluate the data density
+  /* evaluate the data density */
   ILL = LnMultivariateT(pData[node], nData, pdM1, df);
 
   return(ILL);
@@ -387,10 +387,11 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
   double sum;
 
   static int *arrayparents;
-  int dim = (nNodes > nData ? nNodes : nData);
+
   if (!arrayparents){
     arrayparents = InitiVector(nNodes);
   }
+
   /* search the component array for nodes that are in the same (target) scc
      as the current (child) node */
   num_node = 0;    /* number of nodes in the target scc */
@@ -452,7 +453,7 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
   }
   printf("\n\n"); */
 
-  // design matrix construction
+  /* design matrix construction */
   for (i = 0; i < nData; i++)
     pdM2[i][0] = 1;
 
@@ -465,7 +466,7 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     for (j = 0; j <= num_parents; j++) {
       sum = 0;
       for (k = 0; k < nData; k++)
-        sum = sum + (pdM2[k][i] * pdM2[k][j]); //pdM2[k][i] because it's transpose of pdM2
+        sum += pdM2[k][i] * pdM2[k][j]; /* pdM2[k][i] is pdM2 transpose */
       pdM3[i][j] = sum;
       pdM4[i][j] = sum;
     }
@@ -478,12 +479,11 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     InvertMatrix_Chol(pdM4, 1+num_parents);
   }
 
-
   for (i = 0; i <= num_parents; i++) {
     for (j = 0; j < nData; j++) {
       sum = 0;
       for (k = 0; k <= num_parents; k++)
-        sum = sum + (pdM4[i][k] * pdM2[j][k]); //pdM2[j][k] because it's transpose of pdM2
+        sum += pdM4[i][k] * pdM2[j][k]; /* pdM2[j][k] is pdM2 transpose */
       pdM5[i][j] = sum;
     }
   }
@@ -497,8 +497,8 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     }
   }
 
-  // completion of the MLE estimator
-  // computation for the (unscaled) sample variance-covariance matrix
+  /* completion of the MLE estimator */
+  /* computation for the (unscaled) sample variance-covariance matrix */
   for (i = 0; i < nData; i++) {
     for (j = 0; j < num_node; j++) {
       sum = 0;
@@ -513,10 +513,10 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
     for (j = 0; j < num_node; j++) {
       sum = 0;
       for (k = 0; k < nData; k++)
-        sum = sum + pdM7[k][i] * pdM7[k][j]; //pdM7[k][i] is transpose of pdM7
+        sum += pdM7[k][i] * pdM7[k][j]; /* pdM7[k][i] is pdM7 transpose */
       tpd5[i][j] = sum;
 
-	  /* add Wishart shape kappa (identity matrix) to sample vcov matrix */
+      /* add Wishart shape kappa (identity matrix) to sample vcov matrix */
       if (i == j)
         tpd5[i][j] = tpd5[i][j] + scale_wishart_diag;
       else
@@ -560,43 +560,41 @@ int CGLoglikelihood_hypernode (int node, double **pData, int *component,
 double NGLoglikelihood_node_DBN (int node, double **pData)
 {
   int i, j, k;
-  // For DBNs there are in fact n-1 data, compute it once
+  double df, LL;
+  /* For DBNs there are in fact n-1 data, compute it once */
   int nDataM1 = nData - 1;
 
-  double df, LL;
+  /* the vector mu of prior data expectations is null, so forget it */
 
+  /* we need the data precision matrix (1 - x inv(x'x + n0) x') alpha / beta 
+     see Bernardo, appendix */
 
-  // the vector mu of prior data expectations is null, so forget it
+  /* nzero is taken for now to be the identity matrix */
 
-  // we need the data precision matrix (1 - x inv(x'x + n0) x') alpha / beta
-  // see Bernardo, appendix
+  /* store t(X) * X + n_zero in pdM1, X being the design matrix
+     X is implicit given the parents of the node considered, otherwise it
+     would have a column of 1 and the data of the parents as other columns.
+     Remember that n_zero is set to the identity matrix
+     Since we are in the DBN case X has only lines from 0 to nData - 1 */
 
-  // nzero is taken for now to be the identity matrix
+  pdM1[0][0] = nData; /* n_zero element 1 + (n - 1) * 1 */
 
-  // store t(X) * X + n_zero in pdM1, X being the design matrix
-  // X is implicit given the parents of the node considered, otherwise it
-  // would have a column of 1 and the data of the parents as other columns.
-  // Remember that n_zero is set to the identity matrix
-  // Since we are in the DBN case X has only lines from 0 to nData - 1
-
-  pdM1[0][0] = nData; // n_zero element 1 + (n - 1) * 1
-
-  // 1st line and 1st column of pdM1
+  /* 1st line and 1st column of pdM1 */
   for (j = 0; j < nParents[node]; j++) {
-    pdM1[0][j+1] = 0; // set it to n_zero off diagonal element
+    pdM1[0][j+1] = 0; /* set it to n_zero off diagonal element */
     for (k = 0; k < nDataM1; k++) {
       pdM1[0][j+1] += pData[index_parents[node][j]][k];
     }
     pdM1[j+1][0] = pdM1[0][j+1];
   }
 
-  // rest of pdM1
+  /* rest of pdM1 */
   for (i = 0; i < nParents[node]; i++) {
     for (j = i; j < nParents[node]; j++) {
       if (i == j)
-        pdM1[i+1][j+1] = 1; // set it to n_zero diagonal element
+        pdM1[i+1][j+1] = 1; /* set it to n_zero diagonal element */
       else
-        pdM1[i+1][j+1] = 0;   // set it to n_zero off diagonal element
+        pdM1[i+1][j+1] = 0;   /* set it to n_zero off diagonal element */
       for (k = 0; k < nDataM1; k++) {
         pdM1[i+1][j+1] += pData[index_parents[node][i]][k] *
                           pData[index_parents[node][j]][k];
@@ -605,17 +603,17 @@ double NGLoglikelihood_node_DBN (int node, double **pData)
     }
   }
 
-  // invert t(X) * X + n_zero, that is: invert pdM1
+  /* invert t(X) * X + n_zero, that is: invert pdM1 */
   if (nParents[node] == 0) {
     pdM1[0][0] = 1 / pdM1[0][0];
   }
   else
     InvertMatrix_Chol(pdM1, 1+nParents[node]);
 
-  // premultiply by X, store the result in pdM2
+  /* premultiply by X, store the result in pdM2 */
   for (i = 0; i < nDataM1; i++) {
     for (j = 0; j < nParents[node]+1; j++) {
-      pdM2[i][j] = pdM1[0][j]; // no need to multiply by 1
+      pdM2[i][j] = pdM1[0][j]; /* no need to multiply by 1 */
       for (k = 1; k < nParents[node]+1; k++) {
         pdM2[i][j] += pData[index_parents[node][k-1]][i] *
                       pdM1[k][j];
@@ -628,10 +626,10 @@ double NGLoglikelihood_node_DBN (int node, double **pData)
   for (i = 0; i < nDataM1; i++) {
     for (j = i; j < nDataM1; j++) {
       if (i == j) {
-        pdM1[i][j] = 1 - pdM2[i][0]; // no need to multiply by 1
+        pdM1[i][j] = 1 - pdM2[i][0]; /* no need to multiply by 1 */
       }
       else {
-        pdM1[i][j] =   - pdM2[i][0]; // no need to multiply by 1
+        pdM1[i][j] =   - pdM2[i][0]; /* no need to multiply by 1 */
       }
       for (k = 1; k < nParents[node]+1; k++) {
         pdM1[i][j] -= pdM2[i][k] *
@@ -642,16 +640,15 @@ double NGLoglikelihood_node_DBN (int node, double **pData)
     }
   }
 
-  // degrees of freedom
+  /* degrees of freedom */
   df = 2 * alpha_normal_gamma;
 
-  // evaluate the data density, data run from index 1 to nData
+  /* evaluate the data density, data run from index 1 to nData */
   LL = LnMultivariateT(pData[node]+1, nDataM1, pdM1, df);
 
   return(LL);
 
 } /* NGLoglikelihood_node_DBN */
-
 
 
 /* ----------------------------------------------------------------------------
@@ -727,51 +724,51 @@ double DLoglikelihood_node (int node, double **pData)
     pdCumConfigNumber = InitdVector(nNodes);
   }
 
-  // Dirichlet prior sample size of any given configuration of parents values.
-  // case no parents or uniform:
+  /* Dirichlet prior sample size of any given configuration of parents values.
+     case no parents or uniform: */
   N_prime_ijk = 1.0;
 
-  // another possibility, if there are parents, is to set N_prime_ijk at
-  // 1 / number of configurations of parents = 1 / prod_(pDataLevels[parents]).
-  // That should penalize higher number of parents
+  /* another possibility, if there are parents, is to set N_prime_ijk at
+     1 / number of configurations of parents = 1 / prod_(pDataLevels[parents]).
+     That should penalize higher number of parents */
 #ifdef NDEF
   for (i = 0; i < nParents[node]; i++)
     N_prime_ijk /= (double) pDataLevels[index_parents[node][i]];
-    // in any case, that calculation can be omitted if pdCumConfigNumber
-    // is assigned to one, below
+    /* in any case, that calculation can be omitted if pdCumConfigNumber 
+       is assigned to one, below */
 #endif
 
-  // marginal prior sample size on node: pDataLevels[node] * N_prime_ijk.
-  // the actual detailed calculation is the sum from 1 to pDataLevels[node]
-  // of the prior sample sizes for each configuration of parents
+  /* marginal prior sample size on node: pDataLevels[node] * N_prime_ijk.
+     the actual detailed calculation is the sum from 1 to pDataLevels[node]
+     of the prior sample sizes for each configuration of parents */
   N_prime_ij = N_prime_ijk * pDataLevels[node];
 
-  // cumulated products of levels for configurations encoding
+  /* cumulated products of levels for configurations encoding */
   pdCumConfigNumber[0] = pDataLevels[node];
   for (i = 0; i < nParents[node]; i++)
     pdCumConfigNumber[i+1] = pdCumConfigNumber[i] *
                              pDataLevels[index_parents[node][i]];
 
-  // encoding of node and parents configurations:
+  /* encoding of node and parents configurations: */
   for (i = 0; i < nData; i++) {
     pdCodesPE[i] = pData[node][i];
     for (j = 0; j < nParents[node]; j++)
       pdCodesPE[i] += pData[index_parents[node][j]][i] * pdCumConfigNumber[j];
   }
 
-  // form the codes of just the parents configurations to form the marginals
-  // do this before sorting pdCodesPE!
-  // sort the parents configurations if needed
+  /* form the codes of just the parents configurations to form the marginals
+     do this before sorting pdCodesPE!
+     sort the parents configurations if needed */
   if (nParents[node] > 0) {
     for (i = 0; i < nData; i++)
       pdCodesP[i] = pdCodesPE[i] - pData[node][i];
     sort(nData, pdCodesP);
   }
 
-  // sort the various node and parents configurations
+  /* sort the various node and parents configurations */
   sort(nData, pdCodesPE);
 
-  // count (tabulate) the nConfigs unique node and parents configurations
+  /* count (tabulate) the nConfigs unique node and parents configurations */
   j = 0;
   pdIndexConfig[j] = pdCodesPE[0];
   piCardConfig[j] = 1;
@@ -788,16 +785,16 @@ double DLoglikelihood_node (int node, double **pData)
 
   LL = 0;
 
-  // term for updated counts
+  /* term for updated counts */
   for (i = 0; i < nConfigs; i++)
     LL += LnGamma(N_prime_ijk + piCardConfig[i]);
 
-  // term for prior, saving time if LnGamma is zero
+  /* term for prior, saving time if LnGamma is zero */
   if ((N_prime_ijk != 1) && (N_prime_ijk != 2))
     LL -= nConfigs * LnGamma(N_prime_ijk);
 
-  // now deal with the marginal terms:
-  // count (tabulate) the nConfigs unique parents configurations
+  /* now deal with the marginal terms: */
+  /* count (tabulate) the nConfigs unique parents configurations */
   if (nParents[node] == 0) {
     piCardConfig[0] = nData;
     nConfigs = 1;
@@ -818,11 +815,11 @@ double DLoglikelihood_node (int node, double **pData)
     nConfigs = j + 1;
   }
 
-  // term for updated marginal counts
+  /* term for updated marginal counts */
   for (i = 0; i < nConfigs; i++)
     LL -= LnGamma(N_prime_ij + piCardConfig[i]);
 
-  // term for marginal prior, saving time if LnGamma is zero
+  /* term for marginal prior, saving time if LnGamma is zero */
   if ((N_prime_ij != 1) && (N_prime_ij != 2))
     LL += nConfigs * LnGamma(N_prime_ij);
 
@@ -864,7 +861,7 @@ double DLoglikelihood_node_DBN (int node, double **pData)
   static double *pdCodesPE         = NULL;
   static double *pdCumConfigNumber = NULL;
   static double *pdIndexConfig     = NULL;
-  int     nDataM1;
+  static int     nDataM1;
 
   if (!pdCodesPE) {
     pdCodesP          = InitdVector(nData);
@@ -873,56 +870,57 @@ double DLoglikelihood_node_DBN (int node, double **pData)
     piCardConfig      = InitiVector(nData);
     pdCumConfigNumber = InitdVector(nNodes);
 
-    // For DBNs there are in fact n-1 data, compute it once
+    /* For DBNs there are in fact n-1 data, compute it once */
     nDataM1 = nData - 1;
   }
 
-  // Dirichlet prior sample size of any given configuration of parents values.
-  // case no parents or uniform:
+  /* Dirichlet prior sample size of any given configuration of parents values.
+     case no parents or uniform: */
   N_prime_ijk = 1.0;
 
-  // another possibility, if there are parents, is to set N_prime_ijk at
-  // 1 / number of configurations of parents = 1 / prod_(pDataLevels[parents]).
-  // That should penalize higher number of parents
+  /* another possibility, if there are parents, is to set N_prime_ijk at
+     1 / number of configurations of parents = 1 / prod_(pDataLevels[parents]).
+     That should penalize higher number of parents */
 #ifdef NDEF
   for (i = 0; i < nParents[node]; i++)
     N_prime_ijk /= (double) pDataLevels[index_parents[node][i]];
-    // in any case, that calculation can be omitted if pdCumConfigNumber
-    // is assigned to one, below
+    /* in any case, that calculation can be omitted if pdCumConfigNumber
+       is assigned to one, below */
 #endif
-// if that part of code is enabled you should also enable the one below
 
-  // marginal prior sample size on node: pDataLevels[node] * N_prime_ijk.
-  // the actual detailed calculation is the sum from 1 to pDataLevels[node]
-  // of the prior sample sizes for each configuration of parents
+  /* if that part of code is enabled you should also enable the one below */
+
+  /* marginal prior sample size on node: pDataLevels[node] * N_prime_ijk.
+     the actual detailed calculation is the sum from 1 to pDataLevels[node]
+     of the prior sample sizes for each configuration of parents */
   N_prime_ij = N_prime_ijk * pDataLevels[node];
 
-  // cumulated products of levels for configurations encoding
+  /* cumulated products of levels for configurations encoding */
   pdCumConfigNumber[0] = pDataLevels[node];
   for (i = 0; i < nParents[node]; i++)
     pdCumConfigNumber[i+1] = pdCumConfigNumber[i] *
                              pDataLevels[index_parents[node][i]];
 
-  // encoding of node and parents configurations:
+  /* encoding of node and parents configurations: */
   for (i = 0; i < nDataM1; i++) {
     pdCodesPE[i] = pData[node][i+1];
     for (j = 0; j < nParents[node]; j++)
       pdCodesPE[i] += pData[index_parents[node][j]][i] * pdCumConfigNumber[j];
   }
 
-  // form the codes of just the parents configurations to form the marginals
-  // do this before sorting pdCodesPE!
-  // sort the parents configurations if needed
+  /* form the codes of just the parents configurations to form the marginals
+     do this before sorting pdCodesPE!
+     sort the parents configurations if needed */
   if (nParents[node] > 0) {
     for (i = 0; i < nDataM1; i++)
       pdCodesP[i] = pdCodesPE[i] - pData[node][i+1];
     sort(nDataM1, pdCodesP);
   }
 
-  // sort the various node and parents configurations
+  /* sort the various node and parents configurations */
   sort(nDataM1, pdCodesPE);
 
-  // count (tabulate) the nConfigs unique node and parents configurations
+  /* count (tabulate) the nConfigs unique node and parents configurations */
   j = 0;
   pdIndexConfig[j] = pdCodesPE[0];
   piCardConfig[j] = 1;
@@ -939,18 +937,18 @@ double DLoglikelihood_node_DBN (int node, double **pData)
 
   LL = 0;
 
-  // term for updated counts
+  /* term for updated counts */
   for (i = 0; i < nConfigs; i++)
     LL += LnGamma(N_prime_ijk + piCardConfig[i]);
 
 #ifdef NDEF
-  // term for prior, saving time if LnGamma is zero
+  /* term for prior, saving time if LnGamma is zero */
   if ((N_prime_ijk != 1) && (N_prime_ijk != 2))
     LL -= nConfigs * LnGamma(N_prime_ijk);
 #endif
 
-  // now deal with the marginal terms:
-  // count (tabulate) the nConfigs unique parents configurations
+  /* now deal with the marginal terms: */
+  /* count (tabulate) the nConfigs unique parents configurations */
   if (nParents[node] == 0) {
     piCardConfig[0] = nDataM1;
     nConfigs = 1;
@@ -971,11 +969,11 @@ double DLoglikelihood_node_DBN (int node, double **pData)
     nConfigs = j + 1;
   }
 
-  // term for updated marginal counts
+  /* term for updated marginal counts */
   for (i = 0; i < nConfigs; i++)
     LL -= LnGamma(N_prime_ij + piCardConfig[i]);
 
-  // term for marginal prior, saving time if LnGamma is zero
+  /* term for marginal prior, saving time if LnGamma is zero */
   if ((N_prime_ij != 1) && (N_prime_ij != 2))
     LL += nConfigs * LnGamma(N_prime_ij);
 
@@ -1072,14 +1070,14 @@ double ZLoglikelihood_node (int node, double **pData)
     }
   }
 
-  // invert X' * X, that is: invert pdM1
+  /* invert X' * X, that is: invert pdM1 */
   if (nParents[node] == 0) {
     pdM1[0][0] = 1 / pdM1[0][0];
   }
   else
     InvertMatrix_Chol(pdM1, 1+nParents[node]);
 
-  // do (Y' * X) * inv((X' * X)), that is pdV1 * pdM1
+  /* do (Y' * X) * inv((X' * X)), that is pdV1 * pdM1 */
 
   for (j = 0; j <= nParents[node]; j++) {
     pdV2[j] = pdV1[0] * pdM1[0][j];
@@ -1088,14 +1086,14 @@ double ZLoglikelihood_node (int node, double **pData)
     }
   }
 
-  // do (Y' * X) * inv((X' * X)) * (X' * Y), that is pdV2 * t(pdV1)
+  /* do (Y' * X) * inv((X' * X)) * (X' * Y), that is pdV2 * t(pdV1) */
 
   pdV2[0] = pdV2[0] * pdV1[0];
   for (i = 1; i <= nParents[node]; i++) {
     pdV2[0] += pdV2[i] * pdV1[i];
   }
 
-  // finish mx as mx + pdV2 * t(pdV1)
+  /* finish mx as mx + pdV2 * t(pdV1) */
   mx = mx - gamma_zellner / (gamma_zellner + 1) * pdV2[0];
 
   LL = -0.5 * ((nParents[node] + 1) * log(gamma_zellner + 1) +
@@ -1147,43 +1145,43 @@ double ZLoglikelihood_node_DBN (int node, double **pData)
   int i, j, k;
   static double *pdV1  = NULL;
   static double *pdV2  = NULL;
-  int nDataM1;
+  static int nDataM1;
   double mx, LL;
 
   if (!pdV1) {
-    int dim = (nNodes + 1 > nData ? nData : nNodes + 1); // the smallest
+    int dim = (nNodes + 1 > nData ? nData : nNodes + 1); /* the smallest */
     pdV1 = InitdVector(dim);
     pdV2 = InitdVector(dim);
 
-    // For DBNs there are in fact n-1 data, compute it once
+    /* For DBNs there are in fact n-1 data, compute it once */
     nDataM1 = nData - 1;
   }
 
-  // start with mx = Y' * Y
+  /* start with mx = Y' * Y */
   mx = 0;
-  for (i = 1; i < nData; i++) { // shifted for DBN
+  for (i = 1; i < nData; i++) { /* shifted for DBN */
     mx += pow(pData[node][i], 2);
   }
 
-  // do Y' * X
+  /* do Y' * X */
 
-  // all elements of the first column of X are at 1, watch the DBN shift
-  pdV1[0] = pData[node][1]; // shift down
+  /* all elements of the first column of X are at 1, watch the DBN shift */
+  pdV1[0] = pData[node][1]; /* shift down */
   for (i = 2; i < nData; i++) {
     pdV1[0] += pData[node][i];
   }
-  for (j = 0; j < nParents[node]; j++) { // unmatching indices for DBN
+  for (j = 0; j < nParents[node]; j++) { /* unmatching indices for DBN */
     pdV1[j+1] = pData[node][1] * pData[index_parents[node][j]][0];
     for (i = 2; i < nData; i++) {
       pdV1[j+1] += pData[node][i] * pData[index_parents[node][j]][i-1];
     }
   }
 
-  // do X' * X
+  /* do X' * X */
 
-  pdM1[0][0] = nDataM1; // (n - 1) * 1
+  pdM1[0][0] = nDataM1; /* (n - 1) * 1 */
 
-  for (j = 0; j < nParents[node]; j++) { // take care of the line of t(X) * X
+  for (j = 0; j < nParents[node]; j++) { /* take care of the line of t(X)*X */
     pdM1[0][j+1] = 0;
     for (k = 0; k < nDataM1; k++) {
       pdM1[0][j+1] += pData[index_parents[node][j]][k];
@@ -1202,14 +1200,14 @@ double ZLoglikelihood_node_DBN (int node, double **pData)
     }
   }
 
-  // invert X' * X, that is: invert pdM1
+  /* invert X' * X, that is: invert pdM1 */
   if (nParents[node] == 0) {
     pdM1[0][0] = 1 / pdM1[0][0];
   }
   else
     InvertMatrix_Chol(pdM1, 1+nParents[node]);
 
-  // do (Y' * X) * inv((X' * X)), that is pdV1 * pdM1
+  /* do (Y' * X) * inv((X' * X)), that is pdV1 * pdM1 */
 
   for (j = 0; j <= nParents[node]; j++) {
     pdV2[j] = pdV1[0] * pdM1[0][j];
@@ -1218,17 +1216,17 @@ double ZLoglikelihood_node_DBN (int node, double **pData)
     }
   }
 
-  // do (Y' * X) * inv((X' * X)) * (X' * Y), that is pdV2 * t(pdV1)
+  /* do (Y' * X) * inv((X' * X)) * (X' * Y), that is pdV2 * t(pdV1) */
 
   pdV2[0] = pdV2[0] * pdV1[0];
   for (i = 1; i <= nParents[node]; i++) {
     pdV2[0] += pdV2[i] * pdV1[i];
   }
 
-  // finish mx as mx + pdV2 * t(pdV1) just computed and stored in pdV2
+  /* finish mx as mx + pdV2 * t(pdV1) just computed and stored in pdV2 */
   mx = mx - gamma_zellner / (gamma_zellner + 1) * pdV2[0];
 
-  // specific to DBN: one less data point
+  /* specific to DBN: one less data point */
   LL = -0.5 * ((nParents[node] + 1) * log(gamma_zellner + 1) +
                (nDataM1 * log(mx)));
 

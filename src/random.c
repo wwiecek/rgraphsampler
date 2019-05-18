@@ -114,7 +114,6 @@ double LnGamma (double x)
            by LU here)
    df: degrees of freedom
 
-
    Saves the constant in case to speed up (likely) repeated calls with the
    same df.
 */
@@ -124,12 +123,21 @@ double LnMultivariateT (double *x, int dim, /* double *mu, */
   int           i, j;
   double        dtmp1, dtmp2, log_det;
 
-
   /* first term, with ratio of 2 Gamma functions */
+#ifdef R_FLAG
+  /* R does not like statics it seems... */
   double  stored_constant = LnGamma((df + dim) * 0.5) - LnGamma(df * 0.5) -
                             dim * 0.5 * log(df * PI);
-
-
+#else
+  static int    stored_df = -1;
+  static double stored_constant;
+  if (df != stored_df) {
+    stored_df = df;
+    stored_constant = LnGamma((df + dim) * 0.5) - LnGamma(df * 0.5) -
+                      dim * 0.5 * log(df * PI);
+  }
+#endif
+  
   /* (x_i - mu)' * Lambda * (x_i - mu) */
   dtmp1 = 0;
   for (j = 0; j < dim; j++) {
@@ -139,7 +147,6 @@ double LnMultivariateT (double *x, int dim, /* double *mu, */
     }
     dtmp1 += dtmp2 * ( x[j] /* - mu[j] */ );
   }
-
 
   /* determinant of Lambda */
   /* log_det = LnDeterminant_LU (lambda, dim); */
@@ -170,10 +177,8 @@ double LnPoisson (int n, double lambda)
 /* ----------------------------------------------------------------------------
    LnRatio
 
-
    Log-density of the ratio for prior predictive for loops
    Corresponds to log(C'0) calculation in the paper
-
 
    Inputs (notation as in the paper):
    x:       random variable
@@ -183,23 +188,17 @@ double LnPoisson (int n, double lambda)
    n_pp1:   number of parents + 1
    q:       degree of freedom of the Wishart distribution on precision matrix
 
-
    diag:    Wishart scale matrix diagonal elements value
    offdiag: Wishart scale matrix off-diagonal elements value
 
    Constraints:
-
    q >= n_loop
 */
 double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
                 int q, double diag, double offdiag, int nNodes)
 {
-
   int i, j;
   double log_det, log_det1;
-
-
-
 
   int p = q + n_data - n_pp1; /* = IW df + n datapoints - n parents - 1 */
   double c0 = 0; /* constant term */
@@ -223,8 +222,6 @@ double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
     /* We should store det kappa's of different sizes,
        but for now let's live with this */
     c0 += 0.5 * q * LnDeterminant_Chol(kappa, n_loop);
-
-
   }
   else { /* If there are only diagonal elements, no need for LnDet() */
     if (diag != 1.0) {
@@ -235,17 +232,10 @@ double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
   /* Calculate MultivariateGamma_Nloop(p) - MultivariateGamma_Nloop(q) */
   for (i = 1; i <= n_loop; i++) {
     c0 += LnGamma((p * 0.5) + (1 - i) * 0.5);
-
     c0 -= LnGamma((q * 0.5) + (1 - i) * 0.5);
-
   }
 
-
   /* Calculate log-transformed power of Pi */
-
-
-
-
   c0 += n_loop * (n_pp1 - n_data) * 0.5 * log(PI);
 
   /* Calculate log determinants of (X'X) and (VC + I) */
@@ -267,7 +257,6 @@ double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
    mu: mean
    lambda: precision (inverse of variance)
    df: degrees of freedom
-
 
    Saves df in case to speed up (likely) repeated calls with the same df.
 */
@@ -293,18 +282,24 @@ double LnT (double x, double mu, double lambda, int df)
    We have two versions of Randoms() depending whether we use gsl or not
 */
 
-#ifdef NO_LIBGSL
-
 /* ----------------------------------------------------------------------------
    Global definition, private
 */
-
-static RANDREC  vRandRec;
 static int bInit = 0;
 
-void resetRNG() {
-  bInit = 0; //just to avoid adding dependencies on other files
+/* ----------------------------------------------------------------------------
+   ResetRNG
+
+   To avoid adding dependencies between files
+*/
+void ResetRNG() {
+  bInit = 0;
 }
+
+
+#ifdef NO_LIBGSL
+
+static RANDREC  vRandRec; /* private global */
 
 /* ----------------------------------------------------------------------------
    Randoms, standalone version
@@ -401,18 +396,11 @@ void InitRandoms (const int rdm_gen_name, double dSeed)
 
 #else  /* gsl version, preferred: */
 
-
 /* ----------------------------------------------------------------------------
    Global definitions, private
 */
-
 static const gsl_rng_type * genType;
 static gsl_rng * rGenerator;
-static int bInit = 0;
-
-void resetRNG() {
-  bInit = 0; //just to avoid adding dependencies on other files
-}
 
 /* ----------------------------------------------------------------------------
    Randoms, gsl version

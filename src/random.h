@@ -63,7 +63,7 @@ double LnRatio (double **x, double **vc, int n_data, int n_loop, int n_pp1,
 double LnT (double x, double mu, double lambda, int df);
 double Randoms (void);
 void   InitRandoms (const int rdm_gen_name, double dSeed);
-void   resetRNG();
+void   ResetRNG();
 
 /* End */
 

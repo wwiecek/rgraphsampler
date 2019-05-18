@@ -33,6 +33,8 @@ typedef int BOOL;
 BOOL   Check_DAG_Edge (int **adjacency, int parent, int child);
 void   InitTopoList (int nNodes);
 void   KillTopoList ();
+BOOL   IsDAG_w_topo (int nNodes, int **adjacency);
+BOOL   IsDAG_w_topo_list (int nNodes, int **adjacency);
 BOOL   IsDAG_w_topo_list_incremental (int nNodes, int **adjacency);
 
 
@@ -40,8 +42,8 @@ BOOL   IsDAG_w_topo_list_incremental (int nNodes, int **adjacency);
    Global declarations
 */
 
-// externals, to be defined elsewhere
-extern int    *nParents;           // number of parents for each node
+/* externals, to be defined elsewhere */
+extern int *nParents; /* number of parents for each node */
 
 
 /* End */

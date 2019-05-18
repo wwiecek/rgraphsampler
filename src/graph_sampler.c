@@ -83,13 +83,12 @@ void AnnounceProgram (void)
 /* ----------------------------------------------------------------------------
    CleanupMemory
 
-   Releases (some!) pointers & resets the variables used by parser into their
-   original state (e.g. RNG indicator).
+   Releases (some!) pointers and resets the variables used by the parser 
+   to their original state (e.g. the RNG init flag).
 */
 void CleanupMemory (void)
 {
-  // free miscellanious lists and pointers
-  // and set them to NULL
+  /* free miscellanious lists and pointers and set them to NULL */
   if (current_degrees){
     free (current_degrees);
     current_degrees = NULL;
@@ -147,8 +146,7 @@ void CleanupMemory (void)
     mat_sum = NULL;
   }
 
-  //free calculation helper matrices
-  //and set them to NULL
+  /* free calculation helper matrices and set them to NULL */
   int dim = (nNodes > nData ? nNodes : nData);
   if (bDBN)
     dim = dim + 1;
@@ -185,7 +183,7 @@ void CleanupMemory (void)
   nNodes = 0;
 
   //reset RNG
-  resetRNG();
+  ResetRNG();
 
   //kill the list for topological sorting
   KillTopoList();
@@ -237,7 +235,6 @@ void CleanupMemory (void)
   diff_logposterior = 0;
 
 } /* CleanupMemory */
-
 
 
 /* ----------------------------------------------------------------------------
@@ -331,21 +328,21 @@ void InitArrays (void)
     hyper_pB = InitdMatrix(nNodes, nNodes);
 
     if (scale_pB < 0) {
-        printf ("Error: Bernoulli prior probabilities must be in [0,1]\n"
-                "       scale cannot be negative - Exiting.\n\n");
+        printf("Error: Bernoulli prior probabilities must be in [0,1]\n"
+               "       scale cannot be negative - Exiting.\n\n");
         exit(0);
     }
 
     if (scale_pB > 2) {
-        printf ("Error: Bernoulli prior probabilities must be in [0,1]\n"
-                "       scale cannot be larger than 2 - Exiting.\n\n");
+        printf("Error: Bernoulli prior probabilities must be in [0,1]\n"
+               "       scale cannot be larger than 2 - Exiting.\n\n");
         exit(0);
     }
 
-    if(scale_pB == 1)
-      printf ("Setting hyper_pB to equanimous.\n\n");
+    if (scale_pB == 1)
+      printf("Setting hyper_pB to equanimous.\n\n");
     else
-      printf ("Setting hyper_pB to equanimous with scale %g.\n\n", scale_pB);
+      printf("Setting hyper_pB to equanimous with scale %g.\n\n", scale_pB);
 
     scale_pB = scale_pB * 0.5;
     for (i = 0; i < nNodes; i++) {
@@ -493,24 +490,26 @@ void InitArrays (void)
     /* initialize a working matrix to be used in InvertMatrix for example */
     int dim = (nNodes > nData ? nNodes : nData);
 
-    if (bBN || bHypergraph){
+    if (bBN || bHypergraph) {
       pdWorkMatrixSizeN = InitdMatrix(dim, dim);
       pdM1 = InitdMatrix(dim, dim);
       pdM2 = InitdMatrix(dim, dim);
-    if(bHypergraph || bConstantGamma) { /* extra matrices that are only used for SCC cases   */
-                                        /* ConstantGamma treats likelihood as 1-dim SCC case */
-      pdM3 = InitdMatrix(dim, dim);
-      pdM4 = InitdMatrix(dim, dim);
-      pdM5 = InitdMatrix(dim, dim);
-      pdM6 = InitdMatrix(dim, dim);
-      pdM7 = InitdMatrix(dim, dim);
-      tpd5 = InitdMatrix(dim, dim);
+      if (bHypergraph || bConstantGamma) {
+        /* extra matrices that are only used for SCC cases
+           ConstantGamma treats likelihood as 1-dim SCC case */
+        pdM3 = InitdMatrix(dim, dim);
+        pdM4 = InitdMatrix(dim, dim);
+        pdM5 = InitdMatrix(dim, dim);
+        pdM6 = InitdMatrix(dim, dim);
+        pdM7 = InitdMatrix(dim, dim);
+        tpd5 = InitdMatrix(dim, dim);
+      }
     }
-  } else { /* bDBN hopefully */
-    pdWorkMatrixSizeN = InitdMatrix(dim+1, dim+1);
-    pdM1 = InitdMatrix(dim+1, dim+1);
-    pdM2 = InitdMatrix(dim+1, dim+1);
-  }
+    else { /* bDBN hopefully */
+      pdWorkMatrixSizeN = InitdMatrix(dim+1, dim+1);
+      pdM1 = InitdMatrix(dim+1, dim+1);
+      pdM2 = InitdMatrix(dim+1, dim+1);
+    }
 
   //for DBNs we use nNodes + 1, so
 
@@ -527,8 +526,6 @@ void InitArrays (void)
     }
 
   } /* if bData */
-
-
 
 } /* InitArrays */
 
@@ -933,12 +930,7 @@ double Logprior_full (int N, int **adjacency)
    using lex and yacc. Meaningful input is then checked and default values
    are specified.
 */
-#ifdef R_FLAG
 void   ReadScript_Bison (char *filename)
-#endif
-#ifndef R_FLAG
-void   ReadScript_Bison (char *const *filename)
-#endif
 {
   int i, j;
   extern FILE *yyin;
@@ -1293,12 +1285,10 @@ void gsmain (char **szFileIn, char **szPrefixOut)
   char *outp = *szPrefixOut;
   ReadScript_Bison(inp);
   InitOutputs(outp);
-#endif
-
-#ifndef R_FLAG
+#else
 int main (int nArgs, char *const *rgszArg)
 {
-  char   *szFileIn, *szPrefixOut;
+  char *szFileIn, *szPrefixOut;
   AnnounceProgram();
   InitGlobals();
   GetCmdLineArgs(nArgs, rgszArg, &szFileIn, &szPrefixOut);
@@ -1316,9 +1306,8 @@ int main (int nArgs, char *const *rgszArg)
     ConvergenceAnalysis();
 #ifndef R_FLAG
     CloseOutputs (szPrefixOut);
-    return (1);
-#endif
-#ifdef R_FLAG
+    return(1);
+#else
     CloseOutputs(outp);
     return;
 #endif
@@ -1327,9 +1316,8 @@ int main (int nArgs, char *const *rgszArg)
   InitArrays();
 
   /* compute the prior of the initial network,
-  that initializes also book-keeping for fast computations of priors */
+     that initializes also book-keeping for fast computations of priors */
   current_logprior = Logprior_full (nNodes, current_adj);
-
 
   if (current_logprior <= -DBL_MAX)
     lexerr("initial network has prior with null probability");
@@ -1343,6 +1331,7 @@ int main (int nArgs, char *const *rgszArg)
     current_loglikelihood = 0;
 
   current_logposterior = current_logprior + current_loglikelihood;
+
   dBestPrior      = current_logprior;
   dBestLikelihood = current_loglikelihood;
   dBestPosterior  = current_logposterior;
@@ -1422,19 +1411,12 @@ int main (int nArgs, char *const *rgszArg)
     /* sample a move from the baseline Bernoulli prior */
     bEdge = (Randoms () < hyper_pB[parent][child]); /* 0 or 1 */
 
-    //if((iter < 30) && (iter > 0))
-      //printf("iter %d: parent = %d child = %d; current_adj[0][0] = %d; bEdge = %d\n",
-        //     iter, parent, child, current_adj[0][0], bEdge);
-      //printf("iter %d: parent = %d child = %d adj = %d bEdge = %d ",
-      //       iter, parent, child, current_adj[parent][child], bEdge);
-
     if (bEdge == current_adj[parent][child]) {
       diff = 0;
     }
     else {
       if (bEdge == 1) { /* adding an edge */
         diff = 1;
-
 
         if (bBN) {
 
@@ -1476,7 +1458,7 @@ int main (int nArgs, char *const *rgszArg)
                                &diff_loglikelihood)) {
                 nParents[child] -= 1; /* undo diff */
                 goto label_Redo_it;   /* forget it completely */
-        }
+	      }
             }
             else { /* adding an edge inside a hypernode while respecting the
                       constraint on parent's number: no update needed */
@@ -1558,7 +1540,6 @@ int main (int nArgs, char *const *rgszArg)
 
       /* do we really need to compute the posterior if we have no data? */
       diff_logposterior = diff_logprior + diff_loglikelihood;
-
 
       if (bTempered) /* elevate to power 1/temperature */
         diff_logposterior *= pInvTemperatures[indexT];
@@ -1717,8 +1698,7 @@ int main (int nArgs, char *const *rgszArg)
 
 #ifdef R_FLAG
   CloseOutputs(outp);
-#endif
-#ifndef R_FLAG
+#else
   CloseOutputs(szPrefixOut);
 #endif
 
@@ -1728,8 +1708,7 @@ int main (int nArgs, char *const *rgszArg)
 
 #ifdef R_FLAG
   return;
-#endif
-#ifndef R_FLAG
+#else
   return(1);
 #endif
 
