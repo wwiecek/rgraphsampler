@@ -4,6 +4,7 @@
 #' @param filename graph samples (adjacency matrices) file from _graph_sampler_
 #'                 (typically file names ending with `graph_samples.out`)
 #' @return List of adjacency matrices
+#' @importFrom utils read.table
 #' @export
 
 get_samples <- function(filename = "graph_samples.out") {
@@ -21,7 +22,7 @@ get_samples <- function(filename = "graph_samples.out") {
   # only keep the adjacency matrices part
   adj_lines <- sapply(lines, startsWith, "0", USE.NAMES = FALSE) |
     sapply(lines, startsWith, "1", USE.NAMES = FALSE)
-  adj_table <- read.table(textConnection(lines[adj_lines]))
+  adj_table <- utils::read.table(textConnection(lines[adj_lines]))
 
   # SCCs
   scc_lines <- lines[sapply(lines, startsWith, "SCCs", USE.NAMES = FALSE)]

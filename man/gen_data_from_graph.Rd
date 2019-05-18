@@ -42,7 +42,7 @@ true_adj <- matrix(c(
 0, 0, 1, 0,
 0, 0, 0, 1,
 0, 0, 0, 0
-), 4, 4, byrow = T)*runif(4*4, 1, 3)*sign(rnorm(4*4))
+), 4, 4, byrow = TRUE)*runif(4*4, 1, 3)*sign(rnorm(4*4))
 out <- gen_data_from_graph(true_adj, rep(0, 4), rep(1,4), 100)
 pairs(out)
 

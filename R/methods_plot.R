@@ -1,5 +1,6 @@
 #' Generic plots for rgs objects
 #' @import igraph
+#' @importFrom graphics plot
 #' @export
 
 plot.rgs <- function(x, y, ...) {

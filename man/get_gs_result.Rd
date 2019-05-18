@@ -9,6 +9,9 @@ get_gs_result(file_name, node_names = NULL)
 \arguments{
 \item{file_name}{prefix for file names containing edge probabilities (\code{_edge_p.out} appended to \code{file_name}),
 best graph (\code{_best_graph.out}), graph samples (\code{_graph_samples.out})}
+
+\item{node_names}{a character vector with names of nodes to be used in plots and summaries; if NULL,
+defaults to V1, V2, V3, ...}
 }
 \value{
 A list object of class \code{rgs} containing edge probabilities, best graph, samples, SCC probabilities.
