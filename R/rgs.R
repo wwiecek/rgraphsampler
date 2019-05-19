@@ -1,6 +1,8 @@
 #' rgs: R graph_sampler interface
 #'
 #' Run [`graph_sampler`](http://www.nongnu.org/graphsampler/) software from inside R.
+#' `rgs(file_in, file_out)` is equivalent to `graph_sampler <file_in> <file_out>`
+#'
 #' @param file_in file name for a valid `graph_sampler` input script (see syntax
 #'                [here](http://www.nongnu.org/graphsampler/graph_sampler.html#Input-file-syntax);
 #'                comprehensive list of examples is also attached -- see Details)
@@ -9,7 +11,8 @@
 #' @param node_names passed to `get_gs_result()` if `return_result = TRUE`
 #' @return If `return_result = FALSE`, nothing is returned; standard graph_sampler output is printed
 #'         in the terminal and output files generated as requested, under `file_out` file name.
-#'         If `return_result = TRUE`, output is an `rgs` object of `get_gs_result()`.
+#'         If `return_result = TRUE`, [get_gs_result()] is ran after `graph_sampler` and the
+#'         output is an `rgs` object.
 #' @details This simple function allows running C software graph_sampler
 #'          inside R. All of the graph_sampler configuration is achieved
 #'          by using a config script (`file_in`), which is identical to

@@ -6,6 +6,9 @@
 \usage{
 \method{summary}{rgs}(object, ..., digits)
 }
+\arguments{
+\item{object}{Object of class \code{rgs}, typically produced by \code{\link[=rgs]{rgs()}} or \code{\link[=get_gs_result]{get_gs_result()}}.}
+}
 \description{
 Generic summary for rgs objects
 }

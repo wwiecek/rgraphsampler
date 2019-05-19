@@ -15,10 +15,15 @@ The objective of `rgraphsampler` is two-fold:
 
 C code included in the package requires compilation from source. Installing from GitHub under Windows, [RTools](https://cran.r-project.org/bin/windows/Rtools/) should be enough to compile code.
 
+
+```
+devtools::install_github("wwiecek/rgraphsampler", build_vignettes = TRUE, 
+                         build_opts = c("--no-resave-data", "--no-manual"))
+```
+
 *graph_sampler* scripts are ran with `rgs()`; `rgs(file_in, file_out)` is equivalent to `graph_sampler <file_in> <file_out>` 
 
 ```
-devtools::install_github("wwiecek/rgraphsampler", build_vignettes = TRUE)
 library(rgraphsampler)
 #select one of the built-in example scripts:
 script_file <- system.file(package="rgraphsampler", 
@@ -26,6 +31,10 @@ script_file <- system.file(package="rgraphsampler",
 rgs(file_in = script_file, 
     file_out = "gs_output")
 ```
+
+See `?rgs` for more examples and `vignette("rgraphsampler")` for a short demonstration.
+
+
 
 ## Differences between R and C versions
 

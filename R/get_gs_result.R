@@ -1,6 +1,6 @@
 #' get_gs_result
 #'
-#' Load information from graph_sampler output files into a single R object
+#' Load information from `graph_sampler`` output files into a single R object
 #' @param file_name prefix for file names containing edge probabilities (`_edge_p.out` appended to `file_name`),
 #'                  best graph (`_best_graph.out`), graph samples (`_graph_samples.out`)
 #' @param node_names a character vector with names of nodes to be used in plots and summaries; if NULL,
@@ -12,6 +12,17 @@
 #' @author Witold Wiecek
 #' @importFrom utils head
 #' @importFrom utils read.table
+#' @examples
+#' script_file <- system.file(package="rgraphsampler",
+#'                            "test_scripts", "script_test_1.txt")
+#' # Will generate graph_sampler output files in the current working directory
+#' rgs(file_in = script_file,
+#'     file_out = "gs_output",
+#'     return_result = FALSE)
+#' # Load results into a list
+#' res <- get_gs_result("gs_output")
+#'
+#' @author Witold Wiecek
 #' @export
 
 get_gs_result <- function(file_name, node_names = NULL) {

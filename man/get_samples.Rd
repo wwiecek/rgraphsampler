@@ -3,7 +3,8 @@
 \name{get_samples}
 \alias{get_samples}
 \title{get_samples
-Turn a graph_sampler samples output file a list in R}
+Turn a graph_sampler samples output file into a list in R.
+See \code{get_gs_result} for a more general function for working with outputs.}
 \usage{
 get_samples(filename = "graph_samples.out")
 }
@@ -16,5 +17,6 @@ List of adjacency matrices
 }
 \description{
 get_samples
-Turn a graph_sampler samples output file a list in R
+Turn a graph_sampler samples output file into a list in R.
+See \code{get_gs_result} for a more general function for working with outputs.
 }

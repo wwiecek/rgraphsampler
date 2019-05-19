@@ -3,7 +3,8 @@
 \name{get_scc}
 \alias{get_scc}
 \title{get_scc
-Turn a graph_sampler samples output file a list of strongly connected components}
+Turn a \code{graph_sampler} samples output file into a list of strongly connected components.
+See \code{get_gs_result} for a more general function for working with outputs.}
 \usage{
 get_scc(filename = "graph_samples.out")
 }
@@ -16,5 +17,6 @@ List of strongly connected components
 }
 \description{
 get_scc
-Turn a graph_sampler samples output file a list of strongly connected components
+Turn a \code{graph_sampler} samples output file into a list of strongly connected components.
+See \code{get_gs_result} for a more general function for working with outputs.
 }

@@ -17,13 +17,26 @@ defaults to V1, V2, V3, ...}
 A list object of class \code{rgs} containing edge probabilities, best graph, samples, SCC probabilities.
 }
 \description{
-Load information from graph_sampler output files into a single R object
+Load information from `graph_sampler`` output files into a single R object
 }
 \details{
 Loading of samples and SCCs can also be accomplished on its own using
 \code{get_samples} and \code{get_scc} functions.
 This function is a "wrapper" for loading all relevant data.
 }
+\examples{
+script_file <- system.file(package="rgraphsampler",
+                           "test_scripts", "script_test_1.txt")
+# Will generate graph_sampler output files in the current working directory
+rgs(file_in = script_file,
+    file_out = "gs_output",
+    return_result = FALSE)
+# Load results into a list
+res <- get_gs_result("gs_output")
+
+}
 \author{
+Witold Wiecek
+
 Witold Wiecek
 }

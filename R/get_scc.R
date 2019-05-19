@@ -1,10 +1,10 @@
 #' get_scc
-#' Turn a graph_sampler samples output file a list of strongly connected components
+#' Turn a `graph_sampler` samples output file into a list of strongly connected components.
+#' See `get_gs_result` for a more general function for working with outputs.
 #'
 #' @param filename graph samples (adjacency matrices) file from _graph_sampler_
 #'                 (typically file names ending with `graph_samples.out`)
 #' @return List of strongly connected components
-#' @export
 
 get_scc <- function(filename = "graph_samples.out") {
   connection <- file(filename, open = 'r')

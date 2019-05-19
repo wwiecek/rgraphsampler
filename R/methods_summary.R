@@ -1,5 +1,6 @@
 #' Generic summary for rgs objects
 #'
+#' @param object Object of class `rgs`, typically produced by [rgs()] or [get_gs_result()].
 #' @export
 
 summary.rgs <- function(object, ..., digits) {

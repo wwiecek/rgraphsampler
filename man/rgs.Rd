@@ -4,8 +4,8 @@
 \alias{rgs}
 \title{rgs: R graph_sampler interface}
 \usage{
-rgs(file_in = "script.txt", file_out = "output", return_result = TRUE,
-  node_names = NULL)
+rgs(file_in = "script.txt", file_out = "output",
+  return_result = TRUE, node_names = NULL)
 }
 \arguments{
 \item{file_in}{file name for a valid \code{graph_sampler} input script (see syntax
@@ -21,10 +21,12 @@ comprehensive list of examples is also attached -- see Details)}
 \value{
 If \code{return_result = FALSE}, nothing is returned; standard graph_sampler output is printed
 in the terminal and output files generated as requested, under \code{file_out} file name.
-If \code{return_result = TRUE}, output is an \code{rgs} object of \code{get_gs_result()}.
+If \code{return_result = TRUE}, \code{\link[=get_gs_result]{get_gs_result()}} is ran after \code{graph_sampler} and the
+output is an \code{rgs} object.
 }
 \description{
 Run \href{http://www.nongnu.org/graphsampler/}{graph_sampler} software from inside R.
+\code{rgs(file_in, file_out)} is equivalent to \code{graph_sampler <file_in> <file_out>}
 }
 \details{
 This simple function allows running C software graph_sampler

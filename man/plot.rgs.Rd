@@ -2,10 +2,16 @@
 % Please edit documentation in R/methods_plot.R
 \name{plot.rgs}
 \alias{plot.rgs}
-\title{Generic plots for rgs objects}
+\title{Generic plots for objects of class \code{rgs}}
 \usage{
 \method{plot}{rgs}(x, y, ...)
 }
+\arguments{
+\item{x}{Object of class \code{rgs}, typically produced by \code{\link[=rgs]{rgs()}} or \code{\link[=get_gs_result]{get_gs_result()}}.}
+
+\item{y}{Numeric; edges with probabilities less than \code{y} will not be displayed
+on the edge Pr and the SCC graphs. If missing, defaults to 0.}
+}
 \description{
-Generic plots for rgs objects
+Returns the best graph, edge probabilities, SCC graphs
 }

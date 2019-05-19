@@ -1,4 +1,10 @@
-#' Generic plots for rgs objects
+#' Generic plots for objects of class `rgs`
+#'
+#' Returns the best graph, edge probabilities, SCC graphs
+#'
+#' @param x Object of class `rgs`, typically produced by [rgs()] or [get_gs_result()].
+#' @param y Numeric; edges with probabilities less than `y` will not be displayed
+#'          on the edge Pr and the SCC graphs. If missing, defaults to 0.
 #' @import igraph
 #' @importFrom graphics plot
 #' @export

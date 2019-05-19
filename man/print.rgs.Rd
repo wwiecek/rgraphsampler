@@ -6,6 +6,9 @@
 \usage{
 \method{print}{rgs}(x, ...)
 }
+\arguments{
+\item{x}{Object of class \code{rgs}, typically produced by \code{\link[=rgs]{rgs()}} or \code{\link[=get_gs_result]{get_gs_result()}}.}
+}
 \description{
 Generic print for rgs objects
 }
